@@ -1,4 +1,4 @@
-### Welcome to my Github!
+### Always on point!
 
 <!--
 **kahnpoint/kahnpoint** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
