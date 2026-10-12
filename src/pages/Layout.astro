@@ -1,0 +1,25 @@
+---
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import "@phosphor-icons/web/bold";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Home | Kahnpoint" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{title}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Font cssVariable="--font-heading" />
+    <Font cssVariable="--font-sans" />
+  </head>
+  <body class="mx-auto max-w-lg px-4 font-sans">
+    <slot />
+  </body>
+</html>

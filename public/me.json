@@ -1,0 +1,125 @@
+{
+  "name": {
+    "first": "Adam",
+    "last": "Kahn"
+  },
+  "birthDate": "2000-01-28",
+  "bio": "Why sell shovels when there's gold in the rivers?",
+
+  "stats": [
+    { "label": "California", "icon": "map-pin" },
+    { "label": "70 wpm", "icon": "keyboard" }
+  ],
+
+  "skills": [
+    { "label": "Rust", "icon": "file-rs" },
+    { "label": "Typescript", "icon": "file-ts" },
+    { "label": "Python", "icon": "file-py" },
+    { "label": "Libp2p", "icon": "graph" },
+    { "label": "React", "icon": "atom" },
+    { "label": "SK-Learn", "icon": "chart-scatter" },
+    { "label": "MCUs", "icon": "cpu" },
+    { "label": "Pulumi", "icon": "stack" },
+    { "label": "K8S", "icon": "shipping-container" }
+  ],
+
+  "links": [
+    {
+      "label": "Email",
+      "url": "mailto:adam@kahnpoint.com",
+      "icon": "envelope"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/kahnpoint",
+      "icon": "linkedin-logo"
+    },
+    {
+      "label": "GitHub",
+      "url": "https://github.com/kahnpoint",
+      "icon": "github-logo"
+    },
+    {
+      "label": "Twitter",
+      "url": "https://x.com/kahnpoint",
+      "icon": "twitter-logo"
+    },
+    {
+      "label": "Bluesky",
+      "url": "https://bsky.app/profile/kahnpoint.bsky.social",
+      "icon": "butterfly"
+    },
+    {
+      "label": "Steam",
+      "url": "https://steamcommunity.com/id/SpaceSloth7/",
+      "icon": "steam-logo"
+    },
+    {
+      "label": "Spotify",
+      "url": "https://open.spotify.com/user/amkahn29",
+      "icon": "spotify-logo"
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/kahnpoint/",
+      "icon": "instagram-logo"
+    }
+  ],
+
+  "education": [
+    {
+      "institution": "Sacramento State",
+      "degree": "B.S. Business Analytics",
+      "score": "Cum Laude",
+      "dateStart": "2022-12",
+      "dateEnd": "2020-08"
+    }
+  ],
+
+  "experience": [
+    {
+      "company": "Philogen",
+      "companyUrl": "https://www.philogen.com/",
+      "role": "Technical Consultant",
+      "dateStart": "2026-05",
+      "dateEnd": "2026-08",
+      "details": [
+        "Designed infrastructure for company data to be more accessible to AI assistants",
+        "Architected isolated agent sandboxes, CI/CD, and IAM/RBAC"
+      ]
+    },
+    {
+      "company": "8090 Solutions",
+      "companyUrl": "https://www.8090.ai/",
+      "role": "Member of Technical Staff",
+      "dateStart": "2024-10",
+      "dateEnd": "2025-11",
+      "details": [
+        "Developed and deployed nondeterministic document intake and review pipelines",
+        "Monitored and evolved the pipelines through rigorous eval suites",
+        "Managed both engineering and client relationships"
+      ]
+    },
+    {
+      "company": "Northwest Countermeasures",
+      "role": "Technical Consultant",
+      "dateStart": "2022-02",
+      "dateEnd": "2023-03",
+      "details": [
+        "Engineered a GPS/GPRS-enabled IoT text alert system for EMP field sensors",
+        "Manually combed through embedded cell modem AT-Code documentation"
+      ]
+    },
+    {
+      "company": "Siemens",
+      "companyUrl": "https://www.siemens.com/en-us/company/about/businesses/smart-infrastructure/",
+      "role": "Smart Infrastructure Intern",
+      "dateStart": "2022-04",
+      "dateEnd": "2022-08",
+      "details": [
+        "Worked with internet-connected mechanical control systems",
+        "Created data scraper and file conversion scripts for framework upgrades"
+      ]
+    }
+  ]
+}

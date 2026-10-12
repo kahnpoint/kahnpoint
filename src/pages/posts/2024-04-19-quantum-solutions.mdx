@@ -1,0 +1,31 @@
+---
+layout: ../../layouts/Post.astro
+title: "Quantum Problems"
+published: 2024-04-19
+---
+
+Unfortunately for my dreamer brain and sci-fi heart, issues that real businesses have at scale are simply not ones quantum computers solve. Companies face problems like “How can we securely update 4000 computers?”, “How do we recover from accidentally deleting everything?”, and “How expensive will firing this person be?”. Few companies have actual number crunching bottlenecks.
+
+### The Power of Good Enough
+
+Even if quantum computers eventually delivered on all of their proponents’ wildest dreams and were capable of instantaneously solving even the hardest optimization scenarios, most problems already have such advanced heuristics available that they are rarely the weakest link.
+
+There are some commonly brought up exceptions, including: 
+
+- shipping companies with the bin-packing/knapsack problem 
+- delivery companies with traveling-salesman type problems
+- medical or aerospace companies that are willing to shell out millions for that extra .1% of accuracy in their simulations
+
+In practice, mathematically optimal solutions rarely survive contact with the real world. Shipping containers have extra space in them on purpose for unloading, and judging by how Amazon, the largest delivery company in the world, packs their boxes, they don’t really seem to care about the knapsack problem. Freight companies have so many extenuating circumstances (such as weather, traffic, load types, and stop variations) that any perfect solution created by a quantum computer would be quickly invalidated.
+
+Quantum computers are good at finding optimal solutions for models, but optimization problems are typically bottlenecked by being able to accurately model the world. Businesses usually have a dataset they need structure derived from, and the real world is nearly impossible to develop a model that is both complex enough to be useful and concise enough to be pushed through a quantum processor.
+
+### Quantum Dependencies
+
+Quantum computers are painful to integrate into your stack. Developers try to minimize dependencies, and the proposition of quantum computing involves injecting a massive one - all for the privilege of waiting in a queue to run your code on proprietary and expensive hardware. That endgame does not even take into account how, in order to use quantum computers, you need to either learn how to create bespoke quantum circuits for all of your problems, or have their specialists do it for you.
+
+### Dubious Entanglements
+
+My last point is _gestures vaguely at the state of the quantum landscape_. Take for example [D-Wave](https://www.dwavequantum.com), a multidecade old quantum computing company with a 5000 qubit quantum annealer. After looking through [D-Wave’s Featured Applications section](https://www.dwavequantum.com/learn/featured-applications/) expecting something called a "quantum annealer" to be able to do things like “peer through time” and “awaken the old gods”, but seeing titles like “Paint Shop Optimization With Quantum Annealing”, “Quantum in Production: Maximizing TV Commercial Reach”, and “Cryptocurrency Payments in Networks”.
+
+I am by no means an expert and would love to be wrong about all this. Also, I greatly appreciate the efforts of organizations like Signal and the NIST working towards standardizing post-quantum encryption protocols, on the off chance that HNDL attacks become viable. However, "breaking cryptography" is still not a business use case.

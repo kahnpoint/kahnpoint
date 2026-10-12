@@ -1,0 +1,28 @@
+---
+interface Item {
+  label: string;
+  icon: string;
+  url?: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="grid grid-cols-3 gap-x-4 gap-y-2">
+  {items.map(({ label, icon, url }) => (
+    <li class="flex min-w-0 items-center gap-2">
+      <i class={`ph-bold ph-${icon} shrink-0`} aria-hidden="true" />
+      {url ? (
+        <a href={url} class="truncate underline underline-offset-2">
+          {label}
+        </a>
+      ) : (
+        <span class="truncate">{label}</span>
+      )}
+    </li>
+  ))}
+</ul>

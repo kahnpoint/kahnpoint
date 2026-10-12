@@ -1,0 +1,63 @@
+---
+import Layout from "../pages/Layout.astro";
+
+const { frontmatter } = Astro.props;
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+---
+
+<Layout title={`${frontmatter.title} | Kahnpoint`}>
+  <div id="top"></div>
+
+  <header class="fixed inset-x-0 top-0 z-50 bg-background">
+    <nav class="mx-auto grid max-w-md grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-2 px-4 py-2">
+      <a href="/" aria-label="Back" class="justify-self-start hover:opacity-70">
+        <i class="ph-bold ph-caret-left text-xl" aria-hidden="true"></i>
+      </a>
+
+      <button
+        type="button"
+        onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+        class="min-w-0 text-center text-xl font-bold leading-tight hover:opacity-70"
+        style="font-family: var(--font-heading)"
+      >
+        {frontmatter.title}
+      </button>
+
+      <div aria-hidden="true"></div>
+    </nav>
+  </header>
+
+  <article class="py-12 prose max-w-none">
+    <p class="italic text-center pt-4">
+      <span>Published </span>
+      <time
+        datetime={new Date(frontmatter.published).toISOString()}
+        class="shrink-0 text-sm"
+      >
+        {dateFormatter.format(new Date(frontmatter.published))}
+      </time>
+    </p>
+    <slot />
+  </article>
+</Layout>
+
+<style>
+  header::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 16px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-background),
+      transparent
+    );
+    pointer-events: none;
+  }
+</style>

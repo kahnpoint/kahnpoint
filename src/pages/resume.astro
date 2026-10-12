@@ -1,0 +1,202 @@
+---
+import me from "../../public/me.json";
+import "../styles/global.css";
+import "@phosphor-icons/web/bold";
+import { Font } from "astro:assets";
+import ResumeHeading from "../components/AboutHeading.astro";
+
+function formatDate(date: string | null | undefined): string {
+  if (!date) return "Present";
+
+  const [year, month] = date.split("-").map(Number);
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1)));
+}
+
+function dateRange(start: string, end?: string | null): string {
+  return `${formatDate(start)} – ${formatDate(end)}`;
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resume | Kahnpoint</title>
+    <Font cssVariable="--font-heading" />
+    <Font cssVariable="--font-sans" />
+  </head>
+
+  <body>
+    <main class="mx-auto w-full max-w-2xl px-8 py-10 sm:px-12 print:p-0">
+      <!-- Header -->
+      <header class="relative text-center">
+        <!-- Back -->
+        <a
+          href="/"
+          class="absolute mt-[-16px] left-0 top-0 flex items-center gap-1 text-sm opacity-60 hover:opacity-100 print:hidden"
+        >
+          <i class="ph-bold ph-caret-left" aria-hidden="true" />
+          Back
+        </a>
+
+        <!-- Download PDF -->
+        <button
+          type="button"
+          onclick="window.print()"
+          class="absolute mt-[-16px] right-0 top-0 cursor-pointer text-sm opacity-60 hover:opacity-100 print:hidden"
+        >
+          Download PDF
+        </button>
+
+        <!-- Name and contact -->
+        <h1 class="text-4xl font-bold tracking-tight">
+          {me.name.first} {me.name.last}
+        </h1>
+        <div class="mt-1 flex justify-center gap-3 text-sm">
+          <a href="mailto:adam@kahnpoint.com">adam@kahnpoint.com</a>
+          <span class="opacity-40">•</span>
+          <a href="https://kahnpoint.com">kahnpoint.com</a>
+        </div>
+      </header>
+      
+      <!-- Body -->
+      <div class="mt-5 flex flex-col gap-6">
+        <!-- Education -->
+        <section class="flex flex-col gap-3">
+          <ResumeHeading title="Education" />
+
+          <div class="flex flex-col gap-4">
+            {me.education.map((item) => (
+              <div class="break-inside-avoid">
+                <div class="flex items-baseline justify-between gap-4">
+                  <h3 class="text-base font-bold">{item.institution}</h3>
+                  <span class="shrink-0 text-sm opacity-65">
+                    {dateRange(item.dateStart, item.dateEnd)}
+                  </span>
+                </div>
+
+                <div class="flex items-baseline justify-between gap-4">
+                  <span class="text-sm opacity-75">{item.degree}</span>
+                  <span class="shrink-0 text-sm opacity-65">{item.score}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- Experience -->
+        <section class="flex flex-col gap-3">
+          <ResumeHeading title="Experience" />
+
+          <div class="flex flex-col gap-5">
+            {me.experience.map((job) => (
+              <article class="break-inside-avoid">
+                <div class="flex items-baseline justify-between gap-4">
+                  <h3 class="text-base font-bold">
+                    {job.companyUrl ? (
+                      <a href={job.companyUrl}>{job.company}</a>
+                    ) : (
+                      job.company
+                    )}
+                  </h3>
+
+                  <span class="shrink-0 text-sm opacity-65">
+                    {dateRange(job.dateStart, job.dateEnd)}
+                  </span>
+                </div>
+
+                <p class="text-sm opacity-75">{job.role}</p>
+
+                <ul class="mt-1 list-disc space-y-1 pl-5 text-sm leading-snug">
+                  {job.details.map((detail) => (
+                    <li>{detail}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <!-- Skills -->
+        <section class="flex flex-col gap-3">
+          <ResumeHeading title="Skills" />
+
+          <ul class="grid grid-cols-3 gap-x-4 gap-y-2">
+            {me.skills.map(({ label, icon }) => (
+              <li class="flex items-center gap-2 text-sm">
+                <i
+                  class={`ph-bold ph-${icon} shrink-0 text-base`}
+                  aria-hidden="true"
+                />
+                <span>{label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
+
+<style>
+  @page {
+    size: letter;
+    margin: 0.65in;
+  }
+
+  @media print {
+    :global(html) {
+      scrollbar-gutter: auto;
+      background: white !important;
+      color: black !important;
+    }
+
+    :global(body) {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: white !important;
+      color: black !important;
+    }
+
+    main {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    main,
+    main * {
+      color: black !important;
+      background-color: transparent !important;
+      border-color: black !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    a {
+      text-decoration: none !important;
+    }
+
+    article {
+      break-inside: avoid;
+    }
+
+    h1,
+    h2,
+    h3 {
+      break-after: avoid;
+    }
+
+    button {
+      display: none !important;
+    }
+  }
+</style>
