@@ -157,7 +157,7 @@ export function createTouchInput(
   for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
     pad.addEventListener(name, () => setDirections(0, 0), { signal });
 
-  let visible = false;
+  let visible = window.matchMedia("(pointer: coarse)").matches;
   const layout = (): void => {
     if (!visible) {
       layer.style.display = "none";
@@ -181,6 +181,7 @@ export function createTouchInput(
     { signal, capture: true },
   );
   window.addEventListener("resize", layout, { signal });
+  layout();
 
   return {
     sample: () => samplePadLatches(latches),
