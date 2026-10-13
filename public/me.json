@@ -27,8 +27,7 @@
     {
       "label": "XOR",
       "url": "/xor",
-      "icon": "checkerboard",
-      "note": "(Desktop only)"
+      "icon": "checkerboard"
     },
     {
       "label": "Arkenboard",
