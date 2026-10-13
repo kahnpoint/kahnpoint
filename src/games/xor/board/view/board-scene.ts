@@ -1,12 +1,11 @@
-import { FIXED_STEP_SECONDS } from "../../constants";
+import { FIXED_STEP_SECONDS, PLACE_LABEL, REMOVE_LABEL } from "../../constants";
 import { blendVectors, StepScene } from "../../lib/engine/step-scene";
 import type { FrameClock } from "../../lib/engine/step-scene";
 import { MOVE_KEYS } from "../../lib/input/keyboard-input";
 import { neutralPadInput } from "../../lib/input/pad";
 import type { PadOverride } from "../../lib/input/pad";
-import { TOUCH_SHAPES } from "../../lib/input/touch-input";
 import { createDemoBoard } from "../core/demo-board";
-import { tileOf } from "../core/types";
+import { cellKey, tileOf } from "../core/types";
 import type { Board, Cell, Evaluation, PadInput, Vector } from "../core/types";
 import { stepPlayer } from "../player";
 import { evaluateBoard, fillTargets, togglePreviewOf } from "../rules";
@@ -15,8 +14,8 @@ import { BoardDrawing } from "./board-drawing";
 
 const BOARD_KEYS = { ...MOVE_KEYS, Q: "b", E: "x", X: "a" } as const;
 const TOUCH_BUTTONS = [
-  { button: "x", shape: TOUCH_SHAPES.filled, right: 1, bottom: 0 },
-  { button: "b", shape: TOUCH_SHAPES.outline, right: 0, bottom: 0 },
+  { button: "b", label: PLACE_LABEL, row: 1 },
+  { button: "x", label: REMOVE_LABEL, row: 0 },
 ] as const;
 
 export type BoardHandle = {
@@ -52,6 +51,7 @@ export class BoardScene extends StepScene {
     }));
     this.evaluation = evaluateBoard(this.board);
     this.startInput(BOARD_KEYS, TOUCH_BUTTONS);
+    this.showUsableButtons();
 
     const scene = this;
     window.__board = {
@@ -136,5 +136,13 @@ export class BoardScene extends StepScene {
       : togglePreviewOf(this.board, this.evaluation, tile);
     for (const cue of this.board.cues) this.drawing.showCue(cue);
     this.board.cues.length = 0;
+    this.showUsableButtons();
+  }
+
+  private showUsableButtons(): void {
+    const key = cellKey(tileOf(this.board.players[0].position));
+    const hasGate = this.board.gates.has(key);
+    this.setTouchButtonEnabled("b", !hasGate && !this.board.terrain.has(key));
+    this.setTouchButtonEnabled("x", hasGate);
   }
 }

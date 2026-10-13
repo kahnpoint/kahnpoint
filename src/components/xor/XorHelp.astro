@@ -4,8 +4,12 @@ import {
   pixelCountOf,
   sourcePatternsOf,
 } from "../../games/xor/board/core/patterns";
-import { TILE_PIXELS } from "../../games/xor/constants";
-import { PAD_SHAPE, TOUCH_SHAPES } from "../../games/xor/lib/input/touch-input";
+import {
+  PLACE_LABEL,
+  REMOVE_LABEL,
+  TILE_PIXELS,
+} from "../../games/xor/constants";
+import { PAD_SHAPE } from "../../games/xor/lib/input/touch-input";
 import HelpDialog from "../HelpDialog.astro";
 import ControlHint from "./ControlHint.astro";
 import FlowLine from "./FlowLine.astro";
@@ -73,15 +77,11 @@ const scenes = {
 const controls = [
   {
     keys: ["Q"],
-    touch: TOUCH_SHAPES.outline,
-    touchLabel: "The outlined square",
-    action: "Place gate",
+    action: PLACE_LABEL,
   },
   {
     keys: ["E"],
-    touch: TOUCH_SHAPES.filled,
-    touchLabel: "The filled square",
-    action: "Remove gate",
+    action: REMOVE_LABEL,
   },
   {
     keys: ["X"],
@@ -150,21 +150,17 @@ ${[...keyframes.values()].join("\n")}
         </g>
       </HelpScene>
       Move your character with
-      <ControlHint
-        keys={["W", "A", "S", "D"]}
-        touch={PAD_SHAPE}
-        touchLabel="the round pad"
-      />
+      <ControlHint keys={["W", "A", "S", "D"]} touch={PAD_SHAPE} />
       <span class="pointer-coarse:hidden">or the arrow keys.</span> Your
       character can place and remove gates, which will connect to nearby sources
       and other gates.
-      <dl class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
-        {controls.map(({ keys, touch, touchLabel, action }) => (
-          <div class:list={["contents", !touch && "pointer-coarse:hidden"]}>
+      <dl class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pointer-coarse:hidden">
+        {controls.map(({ keys, action }) => (
+          <div class="contents">
             <dt>
-              <ControlHint keys={keys} touch={touch} touchLabel={touchLabel} />
+              <ControlHint keys={keys} />
             </dt>
-            <dd class:list={[!touch && "pointer-coarse:hidden"]}>{action}</dd>
+            <dd>{action}</dd>
           </div>
         ))}
       </dl>

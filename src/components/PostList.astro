@@ -6,9 +6,11 @@ import { formatPostDate, posts } from "../data/posts";
   {posts.map((post) => (
     <a
       href={post.href}
-      class="flex items-baseline justify-between gap-4 hover:underline"
+      class="group flex items-baseline justify-between gap-4 hover:no-underline"
     >
-      <span class="underline underline-offset-2">{post.title}</span>
+      <span class="underline underline-offset-2 group-hover:decoration-2">
+        {post.title}
+      </span>
       <time
         datetime={post.published.toISOString()}
         class="shrink-0 text-sm text-gray-500 italic"

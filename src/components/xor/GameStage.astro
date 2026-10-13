@@ -4,6 +4,9 @@
   import { BoardScene } from "../../games/xor/board/view/board-scene";
   import { PAUSED_KEY } from "../../games/xor/constants";
   import { startGame } from "../../games/xor/lib/engine/start-game";
+  import { lockTouchGestures } from "../../games/xor/lib/input/gesture-lock";
+
+  lockTouchGestures();
 
   const stage = document.getElementById("xor-stage");
   if (!stage) throw new Error("Missing #xor-stage element.");

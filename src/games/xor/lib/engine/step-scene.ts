@@ -10,9 +10,9 @@ import { createGamepadInput } from "../input/gamepad-input";
 import { createKeyboardInput } from "../input/keyboard-input";
 import type { KeyBindings } from "../input/keyboard-input";
 import { mergePadInputs, padInputFromOverride } from "../input/pad";
-import type { PadInput, PadOverride, PadSource } from "../input/pad";
+import type { PadButton, PadInput, PadOverride, PadSource } from "../input/pad";
 import { createTouchInput } from "../input/touch-input";
-import type { TouchButton } from "../input/touch-input";
+import type { TouchButton, TouchInput } from "../input/touch-input";
 
 export type FrameClock = {
   blend: number;
@@ -25,6 +25,7 @@ export type FrameClock = {
 
 export abstract class StepScene extends Phaser.Scene {
   private sources: PadSource[] = [];
+  private touch: TouchInput | null = null;
   private camera: Vector | null = null;
   private accumulatedSeconds = 0;
   private teardown = new AbortController();
@@ -48,8 +49,13 @@ export abstract class StepScene extends Phaser.Scene {
     );
     const keyboard = createKeyboardInput(this, keys, () => touch.hide());
     const gamepad = createGamepadInput(this, () => touch.hide());
+    this.touch = touch;
     this.sources = [keyboard, gamepad, touch];
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.teardown.abort());
+  }
+
+  protected setTouchButtonEnabled(button: PadButton, enabled: boolean): void {
+    this.touch?.setEnabled(button, enabled);
   }
 
   protected press(input: PadOverride, steps: number): void {

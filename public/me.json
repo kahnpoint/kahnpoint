@@ -4,7 +4,7 @@
     "last": "Kahn"
   },
   "birthDate": "2000-01-28",
-  "bio": "Why sell shovels when there's gold in the rivers?",
+  "bio": "",
 
   "stats": [
     { "label": "California", "icon": "map-pin" },
@@ -27,7 +27,8 @@
     {
       "label": "XOR",
       "url": "/xor",
-      "icon": "checkerboard"
+      "icon": "checkerboard",
+      "note": "(Better on desktop)"
     },
     {
       "label": "Arkenboard",

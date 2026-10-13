@@ -22,5 +22,5 @@ const { name, bio } = Astro.props;
     loading="eager"
     class="mx-auto aspect-[3/2] h-64 w-auto rounded-4xl border-4 object-cover"
   />
-  <p>{bio}</p>
+  {bio ? <p>{bio}</p> : null}
 </header>

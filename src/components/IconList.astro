@@ -17,7 +17,10 @@ const { items } = Astro.props;
     <li class="flex min-w-0 items-center gap-2">
       <i class={`ph-bold ph-${icon} shrink-0`} aria-hidden="true" />
       {url ? (
-        <a href={url} class="truncate underline underline-offset-2">
+        <a
+          href={url}
+          class="truncate underline underline-offset-2 hover:decoration-2"
+        >
           {label}
         </a>
       ) : (

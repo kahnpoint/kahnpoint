@@ -1,7 +1,13 @@
 import {
+  INK_COLOR,
+  LIGHT_TONE,
+  PAPER_COLOR,
   TOUCH_AXIS_SLOPE,
   TOUCH_BAND_HEIGHT_PX,
-  TOUCH_BUTTON_SIZE_PX,
+  TOUCH_BUTTON_BORDER_PX,
+  TOUCH_BUTTON_GAP_PX,
+  TOUCH_BUTTON_HEIGHT_PX,
+  TOUCH_BUTTON_WIDTH_PX,
   TOUCH_DEAD_ZONE,
   TOUCH_MARGIN_PX,
   TOUCH_PAD_SIZE_PX,
@@ -12,40 +18,31 @@ import type { PadButton, PadSource } from "./pad";
 
 export type TouchInput = PadSource & {
   hide: () => void;
+  setEnabled: (button: PadButton, enabled: boolean) => void;
 };
 
 export type TouchButton = {
   button: PadButton;
-  shape: string;
-  right: number;
-  bottom: number;
+  label: string;
+  row: number;
 };
 
-export const TOUCH_SHAPES = {
-  filled: `<svg viewBox="0 0 48 48" width="44" height="44"><rect x="8" y="8" width="32" height="32" rx="3" fill="${TOUCH_SHAPE_COLOR}"/></svg>`,
-  outline: `<svg viewBox="0 0 48 48" width="44" height="44"><rect x="9" y="9" width="30" height="30" rx="3" fill="none" stroke="${TOUCH_SHAPE_COLOR}" stroke-width="4"/></svg>`,
-  ring: `<svg viewBox="0 0 48 48" width="44" height="44"><circle cx="24" cy="24" r="17" fill="none" stroke="${TOUCH_SHAPE_COLOR}" stroke-width="4"/></svg>`,
-} as const;
+const cssColorOf = (color: number): string =>
+  `#${color.toString(16).padStart(6, "0")}`;
+const INK = cssColorOf(INK_COLOR);
+const PAPER = cssColorOf(PAPER_COLOR);
+const FADED = cssColorOf(LIGHT_TONE);
+
 export const PAD_SHAPE = `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="46" fill="none" stroke="${TOUCH_SHAPE_COLOR}" stroke-width="3"/>
   <polygon points="50,14 59,28 41,28" fill="${TOUCH_SHAPE_COLOR}"/><polygon points="50,86 59,72 41,72" fill="${TOUCH_SHAPE_COLOR}"/>
   <polygon points="14,50 28,41 28,59" fill="${TOUCH_SHAPE_COLOR}"/><polygon points="86,50 72,41 72,59" fill="${TOUCH_SHAPE_COLOR}"/></svg>`;
 
-function createZone(
-  markup: string,
-  left: string | null,
-  right: string | null,
-  bottom: string,
-  size: number,
-): HTMLDivElement {
+function createZone(size: number): HTMLDivElement {
   const zone = document.createElement("div");
-  zone.innerHTML = markup;
   Object.assign(zone.style, {
     position: "absolute",
     width: `${size}px`,
     height: `${size}px`,
-    bottom,
-    left: left ?? "",
-    right: right ?? "",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -57,23 +54,71 @@ function createZone(
   return zone;
 }
 
-function bindButton(
-  zone: HTMLElement,
+type ButtonZone = {
+  setEnabled: (enabled: boolean) => void;
+};
+
+function createButtonZone(
+  layer: HTMLElement,
+  { label, row }: TouchButton,
   latch: ButtonLatch,
   signal: AbortSignal,
-): void {
-  const release = (): void => latch.release();
+): ButtonZone {
+  const zone = createZone(0);
+  zone.textContent = label;
+  zone.setAttribute("role", "button");
+  Object.assign(zone.style, {
+    right: `${TOUCH_MARGIN_PX}px`,
+    bottom: `${TOUCH_MARGIN_PX + row * (TOUCH_BUTTON_HEIGHT_PX + TOUCH_BUTTON_GAP_PX)}px`,
+    width: `min(${TOUCH_BUTTON_WIDTH_PX}px, calc(100vw - ${TOUCH_PAD_SIZE_PX + 3 * TOUCH_MARGIN_PX}px))`,
+    height: `${TOUCH_BUTTON_HEIGHT_PX}px`,
+    boxSizing: "border-box",
+    border: `${TOUCH_BUTTON_BORDER_PX}px solid`,
+    fontWeight: "700",
+    whiteSpace: "nowrap",
+  });
+  layer.appendChild(zone);
+
+  let enabled = true;
+  let held = false;
+  const paint = (): void => {
+    const tone = enabled ? INK : FADED;
+    zone.style.borderColor = tone;
+    zone.style.color = held ? PAPER : tone;
+    zone.style.background = held ? tone : PAPER;
+    zone.setAttribute("aria-disabled", String(!enabled));
+  };
+  paint();
+
   zone.addEventListener(
     "pointerdown",
     (event) => {
       event.preventDefault();
       zone.setPointerCapture(event.pointerId);
       latch.press();
+      held = true;
+      paint();
     },
     { signal },
   );
   for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
-    zone.addEventListener(name, release, { signal });
+    zone.addEventListener(
+      name,
+      () => {
+        latch.release();
+        held = false;
+        paint();
+      },
+      { signal },
+    );
+
+  return {
+    setEnabled: (next) => {
+      if (next === enabled) return;
+      enabled = next;
+      paint();
+    },
+  };
 }
 
 export function createTouchInput(
@@ -97,26 +142,17 @@ export function createTouchInput(
   });
   root.appendChild(layer);
 
-  const pad = createZone(
-    PAD_SHAPE,
-    `${TOUCH_MARGIN_PX}px`,
-    null,
-    `${TOUCH_MARGIN_PX}px`,
-    TOUCH_PAD_SIZE_PX,
-  );
+  const pad = createZone(TOUCH_PAD_SIZE_PX);
+  pad.innerHTML = PAD_SHAPE;
+  pad.style.left = `${TOUCH_MARGIN_PX}px`;
+  pad.style.bottom = `${TOUCH_MARGIN_PX}px`;
   layer.appendChild(pad);
-  const step = TOUCH_BUTTON_SIZE_PX + 8;
-  for (const { button, shape, right, bottom } of buttons) {
-    const zone = createZone(
-      shape,
-      null,
-      `${TOUCH_MARGIN_PX + right * step}px`,
-      `${TOUCH_MARGIN_PX + bottom * step}px`,
-      TOUCH_BUTTON_SIZE_PX,
+  const zones = new Map<PadButton, ButtonZone>();
+  for (const button of buttons)
+    zones.set(
+      button.button,
+      createButtonZone(layer, button, latches[button.button], signal),
     );
-    layer.appendChild(zone);
-    bindButton(zone, latches[button], signal);
-  }
 
   const setDirections = (x: number, y: number): void => {
     latches.left.setDown(x < 0);
@@ -185,6 +221,7 @@ export function createTouchInput(
 
   return {
     sample: () => samplePadLatches(latches),
+    setEnabled: (button, enabled) => zones.get(button)?.setEnabled(enabled),
     hide: () => {
       if (!visible) return;
       visible = false;

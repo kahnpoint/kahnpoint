@@ -2,10 +2,9 @@
 interface Props {
   keys: string[];
   touch?: string;
-  touchLabel?: string;
 }
 
-const { keys, touch, touchLabel } = Astro.props;
+const { keys, touch } = Astro.props;
 ---
 
 <span class="mx-1 inline-flex gap-1 align-middle pointer-coarse:hidden">
@@ -18,7 +17,7 @@ const { keys, touch, touchLabel } = Astro.props;
 {touch && (
   <span
     role="img"
-    aria-label={touchLabel}
+    aria-label="The round pad"
     class="mx-1 hidden size-7 align-middle pointer-coarse:inline-block [&>svg]:size-full"
     set:html={touch}
   />
