@@ -13,9 +13,6 @@ importers:
       "@astrojs/mdx":
         specifier: ^8.0.3
         version: 8.0.3(@astrojs/markdown-satteri@0.4.3)(astro@7.3.8(jiti@2.7.0)(yaml@2.9.1))
-      "@ianvs/prettier-plugin-sort-imports":
-        specifier: ^4.7.1
-        version: 4.7.1(prettier@3.9.10)
       "@phosphor-icons/web":
         specifier: ^2.1.2
         version: 2.1.2
@@ -28,9 +25,12 @@ importers:
       astro:
         specifier: ^7.3.8
         version: 7.3.8(jiti@2.7.0)(yaml@2.9.1)
-      prettier-plugin-tailwindcss:
-        specifier: ^0.8.1
-        version: 0.8.1(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.9.10))(prettier-plugin-astro@1.1.1(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(prettier@3.9.10))(prettier@3.9.10)
+      phaser:
+        specifier: 4.2.1
+        version: 4.2.1
+      sharp:
+        specifier: ^0.35.5
+        version: 0.35.5
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -38,12 +38,18 @@ importers:
         specifier: ^4.6.6
         version: 4.6.6
     devDependencies:
+      "@ianvs/prettier-plugin-sort-imports":
+        specifier: ^4.7.1
+        version: 4.7.1(prettier@3.9.10)
       prettier:
         specifier: ^3.9.10
         version: 3.9.10
       prettier-plugin-astro:
         specifier: ^1.1.1
         version: 1.1.1(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(prettier@3.9.10)
+      prettier-plugin-tailwindcss:
+        specifier: ^0.8.1
+        version: 0.8.1(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.9.10))(prettier-plugin-astro@1.1.1(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(prettier@3.9.10))(prettier@3.9.10)
 
 packages:
   "@astrojs/compiler-binding-android-arm64@0.4.1":
@@ -2095,6 +2101,12 @@ packages:
         integrity: sha512-zAMfbta9nPA8AKkA4WdmNAT8R8s6Dk0/xwPsqNnRidMFcLo1YkLuPDTgs2f64XdzS8vbLNnoJ+uUIkgbz7oRHA==,
       }
 
+  phaser@4.2.1:
+    resolution:
+      {
+        integrity: sha512-WUNwCPJpdjvZiuT6SgCfYVW8Qw/3j0jJ4ws7P2QkhFLFu74sbGuyHJcbFueGkY/AYO4Pi47bNQXn1OCJeLX//w==,
+      }
+
   piccolore@0.1.3:
     resolution:
       {
@@ -2975,8 +2987,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  "@img/colour@1.1.0":
-    optional: true
+  "@img/colour@1.1.0": {}
 
   "@img/sharp-darwin-arm64@0.35.5":
     optionalDependencies:
@@ -3810,6 +3821,10 @@ snapshots:
 
   package-manager-detector@1.9.0: {}
 
+  phaser@4.2.1:
+    dependencies:
+      eventemitter3: 5.0.4
+
   piccolore@0.1.3: {}
 
   picocolors@1.1.1: {}
@@ -3955,7 +3970,6 @@ snapshots:
       "@img/sharp-win32-arm64": 0.35.5
       "@img/sharp-win32-ia32": 0.35.5
       "@img/sharp-win32-x64": 0.35.5
-    optional: true
 
   shiki@4.5.0:
     dependencies:

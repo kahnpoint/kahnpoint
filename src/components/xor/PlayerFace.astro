@@ -1,0 +1,26 @@
+---
+import { TILE_PIXELS } from "../../games/xor/constants";
+import { TONES } from "./scene-units";
+import TileFrame from "./TileFrame.astro";
+
+interface Props {
+  cell: number;
+  lean?: -1 | 0 | 1;
+  class?: string;
+}
+
+const { cell, lean = 0, class: className } = Astro.props;
+
+const inside = TILE_PIXELS - 2;
+const near = 1 + Math.floor(inside / 4);
+const far = inside - Math.floor(inside / 4);
+---
+
+<g class={className}>
+  <TileFrame cell={cell} frame="ink" cornerless />
+  <g transform={`translate(${cell * TILE_PIXELS + lean} 0)`} fill={TONES.ink}>
+    <rect x={near} y={near} width="1" height="1"></rect>
+    <rect x={far} y={near} width="1" height="1"></rect>
+    <rect x={near} y={far} width={far - near + 1} height="1"></rect>
+  </g>
+</g>

@@ -1,0 +1,47 @@
+---
+import {
+  PATTERN_PIXEL,
+  STREAM_CELLS_PER_SECOND,
+  STREAM_SPACING_CELLS,
+  TILE_PIXELS,
+} from "../../games/xor/constants";
+import { TONES } from "./scene-units";
+
+interface Props {
+  from: number;
+  to: number;
+  class?: string;
+}
+
+const { from, to, class: className } = Astro.props;
+
+const left = (Math.min(from, to) + 1) * TILE_PIXELS;
+const length = (Math.abs(to - from) - 1) * TILE_PIXELS;
+const spacing = STREAM_SPACING_CELLS * TILE_PIXELS;
+const top = (TILE_PIXELS - PATTERN_PIXEL) / 2;
+const squares = Array.from(
+  { length: Math.ceil(length / spacing) + 2 },
+  (_, index) => (index - 1) * spacing,
+);
+const travel = to > from ? spacing : -spacing;
+const seconds = STREAM_SPACING_CELLS / STREAM_CELLS_PER_SECOND;
+---
+
+<g class={className}>
+  <svg x={left} y={top} width={length} height={PATTERN_PIXEL} overflow="hidden">
+    <rect width={length} height={PATTERN_PIXEL} fill={TONES.line}></rect>
+    <g
+      class="xor-help-stream"
+      style={`--stream-travel: ${travel}px; animation-duration: ${seconds}s`}
+    >
+      {squares.map((x) => (
+        <rect
+          x={x}
+          width={PATTERN_PIXEL}
+          height={PATTERN_PIXEL}
+          fill={TONES.mid}
+        />
+      ))}
+    </g>
+  </svg>
+</g>

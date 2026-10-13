@@ -1,0 +1,28 @@
+---
+interface Project {
+  label: string;
+  icon: string;
+  url: string;
+  note?: string;
+}
+
+interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+---
+
+<div class="space-y-4">
+  {projects.map(({ label, icon, url, note }) => (
+    <a href={url} class="flex items-baseline gap-2 hover:underline">
+      <span class="flex shrink-0 items-center gap-2">
+        <i class={`ph-bold ph-${icon}`} aria-hidden="true" />
+        <span class="underline underline-offset-2">{label}</span>
+      </span>
+      {note && (
+        <span class="truncate text-sm text-gray-500 italic">{note}</span>
+      )}
+    </a>
+  ))}
+</div>

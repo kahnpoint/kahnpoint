@@ -1,0 +1,23 @@
+---
+import { TILE_PIXELS } from "../../games/xor/constants";
+import { SCENE_SCALE } from "./scene-units";
+
+interface Props {
+  cells: number;
+  label: string;
+}
+
+const { cells, label } = Astro.props;
+const width = cells * TILE_PIXELS;
+---
+
+<svg
+  viewBox={`0 0 ${width} ${TILE_PIXELS}`}
+  width={width * SCENE_SCALE}
+  role="img"
+  aria-label={label}
+  shape-rendering="crispEdges"
+  class="h-auto max-w-full"
+>
+  <slot />
+</svg>

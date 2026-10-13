@@ -1,9 +1,7 @@
 // @ts-check
-import { defineConfig, fontProviders } from "astro/config";
-
-import tailwindcss from "@tailwindcss/vite";
-
 import mdx from "@astrojs/mdx";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig, fontProviders } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,6 +9,8 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    // Phaser is bundled at server start, so the first visit to /xor does not wait on it.
+    optimizeDeps: { include: ["phaser"] },
   },
 
   integrations: [mdx()],

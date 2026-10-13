@@ -1,0 +1,26 @@
+---
+import { Image } from "astro:assets";
+import profile from "../assets/profile.jpeg";
+
+interface Props {
+  name: string;
+  bio: string;
+}
+
+const { name, bio } = Astro.props;
+---
+
+<header class="flex flex-col items-center space-y-4 text-center">
+  <h1 class="mt-3 text-4xl font-bold">{name}</h1>
+
+  <Image
+    src={profile}
+    alt="Profile"
+    width={768}
+    height={512}
+    fit="cover"
+    loading="eager"
+    class="mx-auto aspect-[3/2] h-64 w-auto rounded-4xl border-4 object-cover"
+  />
+  <p>{bio}</p>
+</header>

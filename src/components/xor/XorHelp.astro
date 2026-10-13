@@ -1,0 +1,248 @@
+---
+import {
+  combinePatterns,
+  pixelCountOf,
+  sourcePatternsOf,
+} from "../../games/xor/board/core/patterns";
+import { TILE_PIXELS } from "../../games/xor/constants";
+import { PAD_SHAPE, TOUCH_SHAPES } from "../../games/xor/lib/input/touch-input";
+import HelpDialog from "../HelpDialog.astro";
+import ControlHint from "./ControlHint.astro";
+import FlowLine from "./FlowLine.astro";
+import HelpScene from "./HelpScene.astro";
+import HelpStep from "./HelpStep.astro";
+import PatternPixels from "./PatternPixels.astro";
+import PlayerFace from "./PlayerFace.astro";
+import TileFrame from "./TileFrame.astro";
+import XorTable from "./XorTable.astro";
+
+const { columns, rows } = sourcePatternsOf();
+const [leftSource, rightSource] = [columns[0]!, columns[1]!];
+const shared = leftSource & rightSource;
+const wanted = combinePatterns([columns[0]!, rows[0]!]);
+
+const LOOP_SECONDS = 8;
+const keyframes = new Map<string, string>();
+
+function shownBetween(from: number, to = 100): string {
+  const name = `xor-help-shown-${from}-${to}`;
+  const stops = [
+    from > 0 && `0%, ${from - 0.01}% { opacity: 0 }`,
+    `${from}%, ${to === 100 ? 100 : to - 0.01}% { opacity: 1 }`,
+    to < 100 && `${to}%, 100% { opacity: 0 }`,
+  ].filter(Boolean);
+  keyframes.set(
+    name,
+    `@keyframes ${name} { ${stops.join(" ")} } .${name} { animation-name: ${name} }`,
+  );
+  return `xor-help-timed ${name}`;
+}
+
+const PREVIEW_AT = 20;
+const PLACE_AT = 45;
+const LEAVE_AT = 65;
+const AWAY_AT = 80;
+const FIRST_AT = 10;
+const SECOND_AT = 35;
+const CANCEL_AT = 60;
+const FEED_AT = 10;
+const FILL_AT = 18;
+const FILL_EVERY = 8;
+const MOVE_AT = 92;
+const fillClasses = Array.from({ length: pixelCountOf(wanted) }, (_, index) =>
+  shownBetween(FILL_AT + index * FILL_EVERY, MOVE_AT),
+);
+
+const scenes = {
+  walk: shownBetween(0, PREVIEW_AT),
+  preview: shownBetween(PREVIEW_AT, PLACE_AT),
+  linked: shownBetween(PREVIEW_AT),
+  standing: shownBetween(PLACE_AT, LEAVE_AT),
+  placed: shownBetween(LEAVE_AT),
+  leaving: shownBetween(LEAVE_AT, AWAY_AT),
+  away: shownBetween(AWAY_AT),
+  idle: shownBetween(0, FIRST_AT),
+  first: shownBetween(FIRST_AT),
+  second: shownBetween(SECOND_AT),
+  sharedFirst: shownBetween(FIRST_AT, SECOND_AT),
+  sharedBoth: shownBetween(SECOND_AT, CANCEL_AT),
+  target: shownBetween(0, MOVE_AT),
+  fed: shownBetween(FEED_AT, MOVE_AT),
+};
+
+const controls = [
+  {
+    keys: ["Q"],
+    touch: TOUCH_SHAPES.outline,
+    touchLabel: "The outlined square",
+    action: "Place gate",
+  },
+  {
+    keys: ["E"],
+    touch: TOUCH_SHAPES.filled,
+    touchLabel: "The filled square",
+    action: "Remove gate",
+  },
+  {
+    keys: ["X"],
+    action: "Toggle gate (either place or remove)",
+  },
+];
+
+const css = `
+.xor-help-timed, .xor-help-walk, .xor-help-leave {
+  animation-duration: ${LOOP_SECONDS}s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.xor-help-walk { animation-name: xor-help-walk; animation-timing-function: ease-out }
+@keyframes xor-help-walk {
+  0% { transform: translate(${TILE_PIXELS}px, 0) }
+  ${PREVIEW_AT - 4}%, 100% { transform: translate(0, 0) }
+}
+.xor-help-leave { animation-name: xor-help-leave }
+@keyframes xor-help-leave {
+  0%, ${LEAVE_AT}% { transform: translate(-${TILE_PIXELS}px, 0) }
+  ${AWAY_AT}%, 100% { transform: translate(0, 0) }
+}
+.xor-help-stream { animation: xor-help-stream linear infinite }
+@keyframes xor-help-stream { to { transform: translate(var(--stream-travel), 0) } }
+${[...keyframes.values()].join("\n")}
+@media (prefers-reduced-motion: reduce) {
+  .xor-help-timed, .xor-help-walk, .xor-help-leave {
+    animation-delay: -${LOOP_SECONDS * 0.9}s;
+    animation-play-state: paused;
+  }
+  .xor-help-stream { animation: none }
+}
+`;
+---
+
+<HelpDialog title="How to play" storageKey="xor-help-state">
+  <ol class="space-y-8">
+    <HelpStep title="1. Place gates">
+      <HelpScene
+        slot="scene"
+        cells={4}
+        label="You walk into line with a dark tile and place a gate that copies its pattern."
+      >
+        <TileFrame cell={0} frame="ink" />
+        <PatternPixels cell={0} pattern={leftSource} />
+        <FlowLine from={0} to={2} class={scenes.linked} />
+        <g class={scenes.walk}>
+          <PlayerFace cell={2} lean={-1} class="xor-help-walk" />
+        </g>
+        <g class={scenes.preview}>
+          <TileFrame cell={2} frame="ink" cornerless />
+          <PatternPixels cell={2} pattern={leftSource} tone="mid" />
+        </g>
+        <g class="xor-help-leave">
+          <PlayerFace cell={3} lean={1} class={scenes.leaving} />
+          <PlayerFace cell={3} class={scenes.away} />
+        </g>
+        <g class={scenes.standing}>
+          <TileFrame cell={2} frame="ink" cornerless />
+          <PatternPixels cell={2} pattern={leftSource} />
+        </g>
+        <g class={scenes.placed}>
+          <TileFrame cell={2} frame="mid" cornerless />
+          <PatternPixels cell={2} pattern={leftSource} />
+        </g>
+      </HelpScene>
+      Move your character with
+      <ControlHint
+        keys={["W", "A", "S", "D"]}
+        touch={PAD_SHAPE}
+        touchLabel="the round pad"
+      />
+      <span class="pointer-coarse:hidden">or the arrow keys.</span> Your
+      character can place and remove gates, which will connect to nearby sources
+      and other gates.
+      <dl class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
+        {controls.map(({ keys, touch, touchLabel, action }) => (
+          <div class:list={["contents", !touch && "pointer-coarse:hidden"]}>
+            <dt>
+              <ControlHint keys={keys} touch={touch} touchLabel={touchLabel} />
+            </dt>
+            <dd class:list={[!touch && "pointer-coarse:hidden"]}>{action}</dd>
+          </div>
+        ))}
+      </dl>
+      As you move around, there will be light gray highlights that show what
+      toggling the current tile would do.
+    </HelpStep>
+
+    <HelpStep title="2. Mix sources">
+      <HelpScene
+        slot="scene"
+        cells={5}
+        label="A gate between two dark tiles takes both patterns, and the squares both have turn off."
+      >
+        <TileFrame cell={0} frame="ink" />
+        <PatternPixels cell={0} pattern={leftSource} />
+        <TileFrame cell={4} frame="ink" />
+        <PatternPixels cell={4} pattern={rightSource} />
+        <FlowLine from={0} to={2} class={scenes.first} />
+        <FlowLine from={4} to={2} class={scenes.second} />
+        <TileFrame cell={2} frame="mid" cornerless />
+        <TileFrame
+          cell={2}
+          frame="mid"
+          inside="idle"
+          cornerless
+          class={scenes.idle}
+        />
+        <PatternPixels
+          cell={2}
+          pattern={leftSource & ~shared}
+          class={scenes.first}
+        />
+        <PatternPixels
+          cell={2}
+          pattern={rightSource & ~shared}
+          class={scenes.second}
+        />
+        <PatternPixels cell={2} pattern={shared} class={scenes.sharedFirst} />
+        <PatternPixels
+          cell={2}
+          pattern={shared}
+          tone="mid"
+          class={scenes.sharedBoth}
+        />
+      </HelpScene>
+      Gates can have multiple inputs, which will be XOR'd:
+      <XorTable />
+      In order for two gates to be connected, they must have different patterns
+      when placed.
+    </HelpStep>
+
+    <HelpStep title="3. Fill patterns">
+      <HelpScene
+        slot="scene"
+        cells={3}
+        label="A gate with the pattern a light tile wants fills it one square at a time."
+      >
+        <TileFrame cell={0} frame="mid" cornerless />
+        <PatternPixels cell={0} pattern={wanted} />
+        <FlowLine from={0} to={2} class={scenes.fed} />
+        <g class={scenes.target}>
+          <TileFrame cell={2} frame="light" />
+          <PatternPixels cell={2} pattern={wanted} tone="light" />
+        </g>
+        <TileFrame cell={2} frame="ink" class={scenes.fed} />
+        <PatternPixels
+          cell={2}
+          pattern={wanted}
+          tone="light"
+          class={scenes.fed}
+        />
+        <PatternPixels cell={2} pattern={wanted} pixelClasses={fillClasses} />
+      </HelpScene>
+      The play area has unfilled light gray patterns, which will fill up when
+      connected to a matching gate. Each filled pixel scores a point, and the
+      pattern will change and move once filled.
+    </HelpStep>
+  </ol>
+</HelpDialog>
+
+<style is:global set:html={css}></style>

@@ -1,0 +1,43 @@
+---
+const rows = [
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+].map(([first, second]) => [first, second, first !== second]);
+---
+
+<table class="-ml-4 border-separate border-spacing-x-4 border-spacing-y-1 text-sm">
+  <thead>
+    <tr>
+      <th scope="col" class="font-normal">
+        Input 1
+      </th>
+      <th scope="col" class="font-normal">
+        Input 2
+      </th>
+      <th scope="col" class="font-normal">
+        Output
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {rows.map((row) => (
+      <tr>
+        {row.map((on) => (
+          <td>
+            <span
+              class:list={[
+                "mx-auto block size-4 border-2",
+                on
+                  ? "border-neutral-900 bg-neutral-900"
+                  : "border-neutral-300 bg-white",
+              ]}
+            />
+            <span class="sr-only">{on ? "On" : "Off"}</span>
+          </td>
+        ))}
+      </tr>
+    ))}
+  </tbody>
+</table>

@@ -1,88 +1,21 @@
 ---
-import { z } from "zod";
-import meJson from "../../public/me.json";
+import { ageInYears, me } from "../data/me";
 import IconList from "./IconList.astro";
-import AboutHeading from "./AboutHeading.astro";
-import { readFileSync } from "node:fs";
-
-const image = readFileSync("public/profile.jpeg");
-const profileSrc = `data:image/jpeg;base64,${image.toString("base64")}`;
-
-const schema = z.object({
-  name: z.object({
-    first: z.string(),
-    last: z.string(),
-  }),
-  birthDate: z.iso.date(),
-  bio: z.string(),
-  location: z.string().optional(),
-  stats: z.array(
-    z.object({
-      label: z.string(),
-      icon: z.string(),
-    }),
-  ),
-  skills: z.array(
-    z.object({
-      label: z.string(),
-      icon: z.string(),
-    }),
-  ),
-  links: z.array(
-    z.object({
-      label: z.string(),
-      url: z.url().optional(),
-      icon: z.string().default("link"),
-    }),
-  ),
-});
-
-const me = schema.parse(meJson);
-
-const matches = import.meta.glob("../pages/posts/*.mdx", {
-  eager: true,
-});
-
-const posts = Object.entries(matches)
-  .map(([path, post]) => ({
-    ...(
-      post as {
-        frontmatter: {
-          title: string;
-          published: string | Date;
-        };
-      }
-    ).frontmatter,
-    href: path.replace("../pages", "").replace(/\.mdx$/, ""),
-  }))
-  .sort(
-    (a, b) => new Date(b.published).getTime() - new Date(a.published).getTime(),
-  );
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeZone: "UTC",
-});
-
-const today = new Date();
-const birth = new Date(`${me.birthDate}T00:00:00Z`);
-
-const age =
-  today.getUTCFullYear() -
-  birth.getUTCFullYear() -
-  (today.getUTCMonth() < birth.getUTCMonth() ||
-  (today.getUTCMonth() === birth.getUTCMonth() &&
-    today.getUTCDate() < birth.getUTCDate())
-    ? 1
-    : 0);
+import PostList from "./PostList.astro";
+import ProfileHeader from "./ProfileHeader.astro";
+import ProjectList from "./ProjectList.astro";
+import SectionHeading from "./SectionHeading.astro";
 
 const links = [
   { label: "Resume", url: "./resume", icon: "read-cv-logo" },
   ...me.links,
 ];
-const stats = [{ label: `${age} y/o`, icon: "cake" }, ...me.stats];
+const stats = [
+  { label: `${ageInYears(me.birthDate)} y/o`, icon: "cake" },
+  ...me.stats,
+];
 
-const sections = [
+const iconSections = [
   { title: "Links", items: links },
   { title: "Stats", items: stats },
   { title: "Skills", items: me.skills },
@@ -90,44 +23,22 @@ const sections = [
 ---
 
 <section class="space-y-4">
-  <header class="flex flex-col items-center space-y-4 text-center">
-    <h1 class="mt-3 text-4xl font-bold">
-      {me.name.first} {me.name.last}
-    </h1>
+  <ProfileHeader name={`${me.name.first} ${me.name.last}`} bio={me.bio} />
 
-    <img
-      src={profileSrc}
-      alt="Profile"
-      class="mx-auto h-64 aspect-[3/2] rounded-4xl border-4 object-cover"
-    />
-    <p>{me.bio}</p>
-  </header>
-
-  {sections.map(({ title, items }) => (
+  {iconSections.map(({ title, items }) => (
     <section class="space-y-4">
-      <AboutHeading title={title} />
+      <SectionHeading title={title} />
       <IconList items={items} />
     </section>
   ))}
 
   <section class="space-y-4">
-    <AboutHeading title={"Writings"} />
+    <SectionHeading title="Projects" />
+    <ProjectList projects={me.projects} />
+  </section>
 
-    <div class="space-y-4">
-      {posts.map((post) => (
-        <a
-          href={post.href}
-          class="flex items-baseline justify-between gap-4 hover:underline"
-        >
-          <span>{post.title}</span>
-          <time
-            datetime={new Date(post.published).toISOString()}
-            class="shrink-0 text-sm italic text-gray-500"
-          >
-            {dateFormatter.format(new Date(post.published))}
-          </time>
-        </a>
-      ))}
-    </div>
+  <section class="space-y-4">
+    <SectionHeading title="Writings" />
+    <PostList />
   </section>
 </section>

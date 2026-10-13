@@ -1,0 +1,50 @@
+---
+import { isPixelLit } from "../../games/xor/board/core/patterns";
+import {
+  PATTERN_PIXEL,
+  PATTERN_SIDE,
+  TILE_PIXELS,
+} from "../../games/xor/constants";
+import { TONES } from "./scene-units";
+import type { Tone } from "./scene-units";
+
+interface Props {
+  cell: number;
+  pattern: number;
+  tone?: Tone;
+  class?: string;
+  pixelClasses?: string[];
+}
+
+const {
+  cell,
+  pattern,
+  tone = "ink",
+  class: className,
+  pixelClasses = [],
+} = Astro.props;
+
+const pixels = [];
+for (let row = 0; row < PATTERN_SIDE; row++) {
+  for (let column = 0; column < PATTERN_SIDE; column++) {
+    if (isPixelLit(pattern, row, column))
+      pixels.push({
+        x: 1 + column * PATTERN_PIXEL,
+        y: 1 + row * PATTERN_PIXEL,
+      });
+  }
+}
+---
+
+<g transform={`translate(${cell * TILE_PIXELS} 0)`} class={className}>
+  {pixels.map(({ x, y }, index) => (
+    <rect
+      x={x}
+      y={y}
+      width={PATTERN_PIXEL}
+      height={PATTERN_PIXEL}
+      fill={TONES[tone]}
+      class={pixelClasses[index]}
+    />
+  ))}
+</g>

@@ -1,0 +1,19 @@
+<div id="xor-stage" class="fixed inset-0 touch-none bg-white"></div>
+
+<script>
+  import { BoardScene } from "../../games/xor/board/view/board-scene";
+  import { PAUSED_KEY } from "../../games/xor/constants";
+  import { startGame } from "../../games/xor/lib/engine/start-game";
+
+  const stage = document.getElementById("xor-stage");
+  if (!stage) throw new Error("Missing #xor-stage element.");
+  const game = startGame(BoardScene, stage);
+
+  game.registry.set(
+    PAUSED_KEY,
+    document.querySelector("dialog[open]") !== null,
+  );
+  document.addEventListener("help-toggle", (event) => {
+    game.registry.set(PAUSED_KEY, (event as CustomEvent).detail.open === true);
+  });
+</script>

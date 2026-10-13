@@ -1,0 +1,92 @@
+---
+interface Props {
+  title: string;
+  storageKey: string;
+}
+
+const { title, storageKey } = Astro.props;
+---
+
+<help-dialog data-storage-key={storageKey}>
+  <button
+    type="button"
+    aria-label="Help"
+    data-help-open
+    class="fixed top-[max(1.5rem,env(safe-area-inset-top))] right-[max(1.5rem,env(safe-area-inset-right))] z-10 flex size-10 cursor-pointer items-center justify-center border-4 border-neutral-900 bg-white text-xl text-neutral-900 hover:bg-neutral-100"
+  >
+    <i class="ph-bold ph-question-mark" aria-hidden="true"></i>
+  </button>
+
+  <dialog
+    aria-labelledby="help-dialog-title"
+    closedby="any"
+    class="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-md overflow-y-auto border-4 border-neutral-900 bg-white p-6 text-neutral-900 backdrop:bg-white/70"
+  >
+    <header class="mb-6 flex items-center justify-between gap-4">
+      <h1 id="help-dialog-title" class="text-2xl">
+        {title}
+      </h1>
+      <form method="dialog">
+        <button
+          aria-label="Close"
+          class="flex size-10 cursor-pointer items-center justify-center text-xl outline-neutral-900 hover:bg-neutral-100"
+        >
+          <i class="ph-bold ph-x" aria-hidden="true"></i>
+        </button>
+      </form>
+    </header>
+    <slot />
+  </dialog>
+</help-dialog>
+
+<script>
+  class HelpDialog extends HTMLElement {
+    connectedCallback(): void {
+      const dialog = this.querySelector("dialog");
+      const openButton = this.querySelector("[data-help-open]");
+      if (!dialog || !openButton) return;
+
+      const announce = (open: boolean): void => {
+        this.dispatchEvent(
+          new CustomEvent("help-toggle", { bubbles: true, detail: { open } }),
+        );
+      };
+      const openDialog = (): void => {
+        dialog.showModal();
+        this.recordState("open");
+        announce(true);
+      };
+
+      openButton.addEventListener("click", openDialog);
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+      dialog.addEventListener("close", () => {
+        this.recordState("closed");
+        announce(false);
+      });
+
+      if (!this.wasClosed()) openDialog();
+    }
+
+    private wasClosed(): boolean {
+      const storageKey = this.dataset.storageKey;
+      if (!storageKey) return false;
+      try {
+        return localStorage.getItem(storageKey) === "closed";
+      } catch {
+        return false;
+      }
+    }
+
+    private recordState(state: "open" | "closed"): void {
+      const storageKey = this.dataset.storageKey;
+      if (!storageKey) return;
+      try {
+        localStorage.setItem(storageKey, state);
+      } catch {}
+    }
+  }
+
+  customElements.define("help-dialog", HelpDialog);
+</script>

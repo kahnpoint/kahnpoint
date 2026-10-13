@@ -23,6 +23,20 @@
     { "label": "K8S", "icon": "shipping-container" }
   ],
 
+  "projects": [
+    {
+      "label": "XOR",
+      "url": "/xor",
+      "icon": "checkerboard",
+      "note": "(Desktop only)"
+    },
+    {
+      "label": "Arkenboard",
+      "url": "https://github.com/kahnpoint/arkenboard",
+      "icon": "command"
+    }
+  ],
+
   "links": [
     {
       "label": "Email",
@@ -71,8 +85,8 @@
       "institution": "Sacramento State",
       "degree": "B.S. Business Analytics",
       "score": "Cum Laude",
-      "dateStart": "2022-12",
-      "dateEnd": "2020-08"
+      "dateStart": "2020-08",
+      "dateEnd": "2022-12"
     }
   ],
 

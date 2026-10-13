@@ -1,0 +1,25 @@
+---
+interface Props {
+  keys: string[];
+  touch?: string;
+  touchLabel?: string;
+}
+
+const { keys, touch, touchLabel } = Astro.props;
+---
+
+<span class="mx-1 inline-flex gap-1 align-middle pointer-coarse:hidden">
+  {keys.map((key) => (
+    <kbd class="inline-flex size-7 items-center justify-center border-2 border-neutral-900 font-sans text-sm font-bold">
+      {key}
+    </kbd>
+  ))}
+</span>
+{touch && (
+  <span
+    role="img"
+    aria-label={touchLabel}
+    class="mx-1 hidden size-7 align-middle pointer-coarse:inline-block [&>svg]:size-full"
+    set:html={touch}
+  />
+)}

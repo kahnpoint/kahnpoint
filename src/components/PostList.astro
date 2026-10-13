@@ -1,0 +1,20 @@
+---
+import { formatPostDate, posts } from "../data/posts";
+---
+
+<div class="space-y-4">
+  {posts.map((post) => (
+    <a
+      href={post.href}
+      class="flex items-baseline justify-between gap-4 hover:underline"
+    >
+      <span class="underline underline-offset-2">{post.title}</span>
+      <time
+        datetime={post.published.toISOString()}
+        class="shrink-0 text-sm text-gray-500 italic"
+      >
+        {formatPostDate(post.published)}
+      </time>
+    </a>
+  ))}
+</div>

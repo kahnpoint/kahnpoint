@@ -1,12 +1,8 @@
 ---
-import Layout from "../pages/Layout.astro";
+import { formatPostDate } from "../data/posts";
+import Layout from "./Layout.astro";
 
 const { frontmatter } = Astro.props;
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeZone: "UTC",
-});
 ---
 
 <Layout title={`${frontmatter.title} | Kahnpoint`}>
@@ -38,7 +34,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
         datetime={new Date(frontmatter.published).toISOString()}
         class="shrink-0 text-sm"
       >
-        {dateFormatter.format(new Date(frontmatter.published))}
+        {formatPostDate(new Date(frontmatter.published))}
       </time>
     </p>
     <slot />

@@ -1,0 +1,24 @@
+---
+import HomeButton from "../components/HomeButton.astro";
+import GameStage from "../components/xor/GameStage.astro";
+import XorHelp from "../components/xor/XorHelp.astro";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="XOR | Kahnpoint"
+  bodyClass="overflow-hidden font-sans"
+  viewport="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+>
+  <GameStage />
+  <HomeButton />
+  <XorHelp />
+</Layout>
+
+<style is:global>
+  html {
+    scrollbar-gutter: auto;
+    overflow: hidden;
+    background: white;
+  }
+</style>
