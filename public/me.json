@@ -59,24 +59,9 @@
       "icon": "twitter-logo"
     },
     {
-      "label": "Bluesky",
-      "url": "https://bsky.app/profile/kahnpoint.bsky.social",
-      "icon": "butterfly"
-    },
-    {
       "label": "Steam",
       "url": "https://steamcommunity.com/id/SpaceSloth7/",
       "icon": "steam-logo"
-    },
-    {
-      "label": "Spotify",
-      "url": "https://open.spotify.com/user/amkahn29",
-      "icon": "spotify-logo"
-    },
-    {
-      "label": "Instagram",
-      "url": "https://www.instagram.com/kahnpoint/",
-      "icon": "instagram-logo"
     }
   ],
 
@@ -85,7 +70,7 @@
       "institution": "Sacramento State",
       "degree": "B.S. Business Analytics",
       "score": "Cum Laude",
-      "dateStart": "2020-08",
+      "dateStart": "2021-08",
       "dateEnd": "2022-12"
     }
   ],
@@ -98,8 +83,8 @@
       "dateStart": "2026-05",
       "dateEnd": "2026-08",
       "details": [
-        "Designed infrastructure for company data to be more accessible to AI assistants",
-        "Architected isolated agent sandboxes, CI/CD, and IAM/RBAC"
+        "Contributed towards making company data accessible to AI assistants",
+        "Architected agent sandboxing, CI/CD, and IAM/RBAC infrastructure"
       ]
     },
     {
@@ -110,8 +95,8 @@
       "dateEnd": "2025-11",
       "details": [
         "Developed and deployed nondeterministic document intake and review pipelines",
-        "Monitored and evolved the pipelines through rigorous eval suites",
-        "Managed both engineering and client relationships"
+        "Monitored and evolved the pipelines through feedback and eval suites",
+        "Managed both engineering workloads and client relationships"
       ]
     },
     {
@@ -120,8 +105,7 @@
       "dateStart": "2022-02",
       "dateEnd": "2023-03",
       "details": [
-        "Engineered a GPS/GPRS-enabled IoT text alert system for EMP field sensors",
-        "Manually combed through embedded cell modem AT-Code documentation"
+        "Engineered a GPS/GPRS-enabled IoT text alert system for EMP field sensors"
       ]
     },
     {
@@ -132,7 +116,7 @@
       "dateEnd": "2022-08",
       "details": [
         "Worked with internet-connected mechanical control systems",
-        "Created data scraper and file conversion scripts for framework upgrades"
+        "Created internal data transformation and file conversion scripts"
       ]
     }
   ]
