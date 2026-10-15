@@ -15,6 +15,7 @@ import ControlHint from "./ControlHint.astro";
 import FlowLine from "./FlowLine.astro";
 import HelpScene from "./HelpScene.astro";
 import HelpStep from "./HelpStep.astro";
+import PatternCalculator from "./PatternCalculator.astro";
 import PatternPixels from "./PatternPixels.astro";
 import PlayerFace from "./PlayerFace.astro";
 import ResetButton from "./ResetButton.astro";
@@ -119,6 +120,7 @@ ${[...keyframes.values()].join("\n")}
 ---
 
 <HelpDialog title="How to play" storageKey="onehot-help-state">
+  <PatternCalculator slot="actions" />
   <ResetButton slot="actions" />
   <ol class="space-y-8">
     <HelpStep title="1. Place gates">
@@ -207,9 +209,16 @@ ${[...keyframes.values()].join("\n")}
           class={scenes.sharedBoth}
         />
       </HelpScene>
-      Gates can have multiple inputs, which can be combined to make new outputs.
-      Each output pixel will be filled when exactly one of its input pixels is
-      filled.
+      Gates combine their inputs' pixels, and each of its output pixels will be
+      filled only when <span class="font-bold"> exactly one</span> of its input
+      pixels is filled. Signals travel in straight lines to the first tile or
+      gate in each direction, at any distance.
+      <p class="mt-3">
+        Gates show how many hops away from a source they are by the lightness of
+        their borders. Gates only take inputs that reach them in the fewest gate
+        hops from a source, which means that all input gates must have the same
+        number of gate hops.
+      </p>
     </HelpStep>
 
     <HelpStep title="3. Fill patterns">
@@ -234,14 +243,17 @@ ${[...keyframes.values()].join("\n")}
         />
         <PatternPixels cell={2} pattern={wanted} pixelClasses={fillClasses} />
       </HelpScene>
-      The play area has unfilled light gray patterns, which will fill up when
-      connected to a matching gate. Each filled pixel scores a point, and when
-      the pattern is filled, it will move location and change its pattern.
+      The board has unfilled light gray patterns that fill up when connected to
+      a matching gate, scoring one point per filled pixel. When the pattern is
+      filled completely, it will move location and change its pattern.
       <p class="mt-3">
-        Completing four patterns will increase the level and the complexity of
-        the subsequent patterns.
+        Completing four patterns advances you to the next level, which will
+        increase the complexity of the subsequent patterns.
       </p>
-      <p class="mt-3">Have fun!</p>
+      <p class="mt-3">
+        If you need some help with a pattern, you can use the calculator button
+        in the upper right to see an example solution. Have fun!
+      </p>
     </HelpStep>
   </ol>
 </HelpDialog>

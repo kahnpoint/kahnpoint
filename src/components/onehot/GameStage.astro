@@ -26,10 +26,7 @@
     const level = document.querySelector("[data-onehot-level]");
     if (points) points.textContent = String(progress.points);
     if (level)
-      level.textContent =
-        progress.mode === "endless"
-          ? "Endless"
-          : `Level ${progress.level}/${progress.totalLevels}`;
+      level.textContent = `Level ${progress.level}/${progress.totalLevels}`;
     syncPause();
   });
   document.addEventListener("onehot-restart", () => {

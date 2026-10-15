@@ -23,7 +23,7 @@ import {
 } from "../../constants";
 import { PixelPen } from "../../lib/draw/pixel-pen";
 import type { FrameClock } from "../../lib/engine/step-scene";
-import { isPixelLit } from "../core/patterns";
+import { isPixelLit, pixelCountOf } from "../core/patterns";
 import { cellKey, tileOf } from "../core/types";
 import type {
   Board,
@@ -35,6 +35,7 @@ import type {
 } from "../core/types";
 import { flowKey, flowsOf } from "../rules";
 import type { TogglePreview } from "../rules";
+import { gateDepthColor, maxPoweredGateDepth } from "./gate-depth-colors";
 
 const GATE_TONE = MID_TONE;
 const TARGET_TONE = LIGHT_TONE;
@@ -132,6 +133,11 @@ export class BoardDrawing {
     const changed = new Map(
       (preview?.changed ?? []).map((node) => [cellKey(node.cell), node]),
     );
+    const previewEvaluation = new Map(evaluation);
+    for (const [key, node] of changed) previewEvaluation.set(key, node);
+    const maximumGateDepth =
+      preview?.maximumStep ??
+      maxPoweredGateDepth(board.gates.keys(), previewEvaluation);
     for (const [key, terrain] of board.terrain) {
       const cell = parseCell(key);
       const size = Math.min(1, GATE_SCALE * this.popScaleAt(cell));
@@ -147,7 +153,9 @@ export class BoardDrawing {
             effect.cell.y === cell.y,
         );
         let filled = 0;
-        let toFill = terrain.filled - arriving.length;
+        let toFill =
+          Math.min(terrain.filled, pixelCountOf(terrain.pattern)) -
+          arriving.length;
         for (let bit = 1; toFill > 0; bit <<= 1) {
           if (!(terrain.pattern & bit)) continue;
           filled |= bit;
@@ -193,10 +201,23 @@ export class BoardDrawing {
     }
     for (const [key, gate] of board.gates) {
       const size = Math.min(1, GATE_SCALE * this.popScaleAt(gate.cell));
-      const gives = evaluation.get(key)?.gives ?? null;
+      const node = changed.get(key) ?? evaluation.get(key);
+      const gives = node?.gives ?? null;
+      const frameColor =
+        gives !== null && node?.step !== undefined
+          ? gateDepthColor(node.step, maximumGateDepth)
+          : GATE_TONE;
       const after = changed.get(key);
-      if (after) this.drawWouldBe(gate.cell, after.gives, size);
-      else this.drawGate(gate.cell, gives, size);
+      if (after)
+        this.drawWouldBe(
+          gate.cell,
+          after.gives,
+          size,
+          after.gives !== null && after.step !== undefined
+            ? gateDepthColor(after.step, maximumGateDepth)
+            : GATE_TONE,
+        );
+      else this.drawGate(gate.cell, gives, size, frameColor);
     }
 
     board.players.forEach((player, index) => {
@@ -305,12 +326,17 @@ export class BoardDrawing {
     if (pattern !== null) this.drawPattern(center, pattern, size);
   }
 
-  private drawGate(center: Vector, gives: Pattern | null, size: number): void {
+  private drawGate(
+    center: Vector,
+    gives: Pattern | null,
+    size: number,
+    frameColor: number,
+  ): void {
     this.drawTile(
       center,
       gives,
       size,
-      GATE_TONE,
+      frameColor,
       gives === null ? IDLE_GATE_COLOR : PAPER_COLOR,
     );
     this.pen.fillCorners(center, PAPER_COLOR);
@@ -320,12 +346,13 @@ export class BoardDrawing {
     center: Vector,
     after: Pattern | null,
     size: number,
+    frameColor: number,
   ): void {
     this.drawTile(
       center,
       null,
       size,
-      GATE_TONE,
+      frameColor,
       after === null ? IDLE_GATE_COLOR : PAPER_COLOR,
     );
     this.pen.fillCorners(center, PAPER_COLOR);

@@ -45,6 +45,8 @@ export function flowsOf(board: Board, evaluation: Evaluation): Flow[] {
 export type TogglePreview = {
   removes: boolean;
   gives: Pattern | null;
+  step: number | undefined;
+  maximumStep: number;
   flows: Flow[];
   removed: Flow[];
   changed: NodeState[];
@@ -75,12 +77,24 @@ export function togglePreviewOf(
   const changed: NodeState[] = [];
   for (const [nodeKey, node] of after) {
     const before = evaluation.get(nodeKey);
-    if (before && (before.gives !== node.gives || before.lit !== node.lit))
+    if (
+      before &&
+      (before.gives !== node.gives ||
+        before.lit !== node.lit ||
+        before.step !== node.step)
+    )
       changed.push(node);
   }
   return {
     removes,
     gives: after.get(key)?.gives ?? null,
+    step: after.get(key)?.step,
+    maximumStep: Math.max(
+      0,
+      ...[...imagined.gates.keys()].map(
+        (gateKey) => after.get(gateKey)?.step ?? 0,
+      ),
+    ),
     flows,
     removed,
     changed,
@@ -108,6 +122,7 @@ export function fillTargets(
     const target = board.terrain.get(key);
     if (target?.type !== "target" || !node.lit) continue;
     const pixels = pixelCountOf(target.pattern);
+    const requiredArrivals = Math.max(1, pixels);
     let moves = false;
     for (const take of node.takes) {
       const from = seenFrom(board, node.cell, take.side) as Cell;
@@ -122,17 +137,17 @@ export function fillTargets(
         left > 0;
         left--
       ) {
-        if (target.filled >= pixels) {
+        if (target.filled >= requiredArrivals) {
           moves = true;
           continue;
         }
         let pixel = 0;
-        for (let skip = target.filled; ; pixel++) {
+        for (let skip = target.filled; pixels > 0; pixel++) {
           if (!(target.pattern & (1 << pixel))) continue;
           if (skip-- === 0) break;
         }
         target.filled++;
-        if (target.filled === pixels) {
+        if (target.filled === requiredArrivals) {
           board.completedTargets++;
           if (
             board.mode === "levels" &&
@@ -140,8 +155,10 @@ export function fillTargets(
           )
             board.mode = "complete";
         }
-        board.score++;
-        board.cues.push({ type: "fill", cell: node.cell, from, pixel });
+        if (pixels > 0) {
+          board.score++;
+          board.cues.push({ type: "fill", cell: node.cell, from, pixel });
+        }
         if (board.mode === "complete") return arrived;
       }
     }

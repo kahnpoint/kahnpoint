@@ -2,13 +2,17 @@ import { DEMO_HEIGHT, DEMO_WIDTH, PATTERN_SIDE } from "../../constants";
 import { createPlayer } from "../player";
 import { createDemoBoard, DEMO_SOURCES } from "./demo-board";
 import { pixelCountOf } from "./patterns";
-import { TARGETS_PER_STAGE, TOTAL_LEVELS } from "./target-patterns";
+import {
+  targetLevelForGateCost,
+  TARGETS_PER_STAGE,
+  TOTAL_LEVELS,
+} from "./target-patterns";
 import { cellKey, tileOf } from "./types";
 import type { Board, Cell, Gate, Pattern, Terrain, Vector } from "./types";
 
 export const SAVED_BOARD_STORAGE_KEY = "onehot.saved-board";
 
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 3;
 const PIXEL_COUNT = PATTERN_SIDE * PATTERN_SIDE;
 const MAX_PATTERN = 2 ** PIXEL_COUNT - 1;
 type BoardMode = "levels" | "complete" | "endless";
@@ -20,6 +24,7 @@ type SavedGate = [string, Gate][];
 
 type SavedBoard = {
   version: number;
+  totalLevels: number;
   mode: BoardMode;
   width: number;
   height: number;
@@ -82,7 +87,7 @@ function isPosition(
     value.y >= 0 &&
     value.x < width &&
     value.y < height &&
-    isCell(tileOf(value), width, height)
+    isCell(tileOf({ x: value.x, y: value.y }), width, height)
   );
 }
 
@@ -96,8 +101,7 @@ function isTerrain(value: unknown): value is Terrain {
   if (value.type === "target") {
     return (
       isPattern(value.pattern) &&
-      value.pattern !== 0 &&
-      isIntegerIn(value.filled, 0, pixelCountOf(value.pattern))
+      isIntegerIn(value.filled, 0, Math.max(1, pixelCountOf(value.pattern)))
     );
   }
   return false;
@@ -119,6 +123,7 @@ function isValidSavedBoard(value: unknown): value is SavedBoard {
   if (!isRecord(value)) return false;
   if (
     value.version !== SAVE_VERSION ||
+    value.totalLevels !== TOTAL_LEVELS ||
     (value.mode !== "levels" &&
       value.mode !== "complete" &&
       value.mode !== "endless") ||
@@ -195,6 +200,57 @@ export function loadBoard(storage?: StorageLike): Board | null {
     const raw = targetStorage.getItem(SAVED_BOARD_STORAGE_KEY);
     if (raw === null) return null;
     const parsed: unknown = JSON.parse(raw);
+    if (
+      isRecord(parsed) &&
+      (parsed.version === 1 ||
+        parsed.version === 2 ||
+        (parsed.version === SAVE_VERSION &&
+          parsed.totalLevels !== TOTAL_LEVELS)) &&
+      isIntegerIn(parsed.completedTargets, 0, Number.MAX_SAFE_INTEGER)
+    ) {
+      const priorLevels = parsed.version === 1 ? 40 : parsed.totalLevels;
+      if (isIntegerIn(priorLevels, 1, DEMO_WIDTH * DEMO_HEIGHT)) {
+        let completedTargets = parsed.completedTargets;
+        const priorCompletedTargets = completedTargets;
+        if (parsed.version === 1) {
+          completedTargets = Math.floor(
+            (completedTargets * TOTAL_LEVELS) / priorLevels,
+          );
+        } else if (priorLevels === 61) {
+          const oldLevel = 1 + Math.floor(completedTargets / TARGETS_PER_STAGE);
+          const stageProgress = completedTargets % TARGETS_PER_STAGE;
+          const newLevel = targetLevelForGateCost(oldLevel);
+          completedTargets = (newLevel - 1) * TARGETS_PER_STAGE + stageProgress;
+        } else {
+          completedTargets = Math.floor(
+            (completedTargets * TOTAL_LEVELS) / priorLevels,
+          );
+        }
+        if (parsed.mode === "complete" || parsed.mode === "endless")
+          completedTargets = Math.max(
+            completedTargets,
+            TOTAL_LEVELS * TARGETS_PER_STAGE,
+          );
+        if (
+          parsed.mode === "levels" &&
+          priorCompletedTargets >= priorLevels * TARGETS_PER_STAGE
+        )
+          parsed.mode = "complete";
+        if (parsed.mode === "complete")
+          completedTargets = Math.max(
+            completedTargets,
+            TOTAL_LEVELS * TARGETS_PER_STAGE,
+          );
+        if (
+          parsed.mode === "levels" &&
+          completedTargets >= TOTAL_LEVELS * TARGETS_PER_STAGE
+        )
+          parsed.mode = "complete";
+        parsed.completedTargets = completedTargets;
+        parsed.version = SAVE_VERSION;
+        parsed.totalLevels = TOTAL_LEVELS;
+      }
+    }
     if (!isValidSavedBoard(parsed)) return null;
 
     const board = createDemoBoard(() => 0);
@@ -229,6 +285,7 @@ export function saveBoard(board: Board, storage?: StorageLike): boolean {
   try {
     const saved: SavedBoard = {
       version: SAVE_VERSION,
+      totalLevels: TOTAL_LEVELS,
       mode: board.mode,
       width: board.width,
       height: board.height,

@@ -12,7 +12,7 @@ importers:
         version: 0.4.3
       "@astrojs/mdx":
         specifier: ^8.0.3
-        version: 8.0.3(@astrojs/markdown-satteri@0.4.3)(astro@7.3.8(jiti@2.7.0)(yaml@2.9.1))
+        version: 8.0.3(@astrojs/markdown-satteri@0.4.3)(astro@7.3.8(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
       "@phosphor-icons/web":
         specifier: ^2.1.2
         version: 2.1.2
@@ -21,16 +21,16 @@ importers:
         version: 0.5.20(tailwindcss@4.3.3)
       "@tailwindcss/vite":
         specifier: ^4.3.3
-        version: 4.3.3(vite@8.3.4(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.3.3(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
       astro:
         specifier: ^7.3.8
-        version: 7.3.8(jiti@2.7.0)(yaml@2.9.1)
+        version: 7.3.8(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
       phaser:
         specifier: 4.2.1
         version: 4.2.1
       sharp:
         specifier: ^0.35.5
-        version: 0.35.5
+        version: 0.35.5(@types/node@26.6.5)
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -41,6 +41,9 @@ importers:
       "@ianvs/prettier-plugin-sort-imports":
         specifier: ^4.7.1
         version: 4.7.1(prettier@3.9.10)
+      "@types/node":
+        specifier: 26.6.5
+        version: 26.6.5
       prettier:
         specifier: ^3.9.10
         version: 3.9.10
@@ -50,6 +53,9 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.8.1
         version: 0.8.1(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.9.10))(prettier-plugin-astro@1.1.1(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(prettier@3.9.10))(prettier@3.9.10)
+      z3-solver:
+        specifier: 5.3.0
+        version: 5.3.0
 
 packages:
   "@astrojs/compiler-binding-android-arm64@0.4.1":
@@ -1217,6 +1223,12 @@ packages:
         integrity: sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA==,
       }
 
+  "@types/node@26.6.5":
+    resolution:
+      {
+        integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==,
+      }
+
   "@types/unist@3.0.3":
     resolution:
       {
@@ -1262,6 +1274,12 @@ packages:
     peerDependenciesMeta:
       "@astrojs/markdown-remark":
         optional: true
+
+  async-mutex@0.3.2:
+    resolution:
+      {
+        integrity: sha512-HuTK7E7MT7jZEh1P9GtRW9+aTWiDWWi9InbZ5hjxrnRa39KS4BW04+xLBhYNS2aXhHUIKZSw3gj4Pn1pj+qGAA==,
+      }
 
   axobject-query@4.1.0:
     resolution:
@@ -2468,6 +2486,12 @@ packages:
         integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==,
       }
 
+  undici-types@8.9.0:
+    resolution:
+      {
+        integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==,
+      }
+
   undici@8.11.2:
     resolution:
       {
@@ -2692,6 +2716,13 @@ packages:
       }
     engines: { node: ">=12.20" }
 
+  z3-solver@5.3.0:
+    resolution:
+      {
+        integrity: sha512-z52S10auUvepouLks8wHiGVk79mzN83IJt65/tmuGM148pK8Vfi7+eFPmD7dghjZjyudSGliivl24STjhbNWkg==,
+      }
+    engines: { node: ">=16" }
+
   zod@4.6.6:
     resolution:
       {
@@ -2832,11 +2863,11 @@ snapshots:
       github-slugger: 2.0.0
       satteri: 0.10.5
 
-  "@astrojs/mdx@8.0.3(@astrojs/markdown-satteri@0.4.3)(astro@7.3.8(jiti@2.7.0)(yaml@2.9.1))":
+  "@astrojs/mdx@8.0.3(@astrojs/markdown-satteri@0.4.3)(astro@7.3.8(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))":
     dependencies:
       "@astrojs/internal-helpers": 0.12.0
       "@astrojs/markdown-satteri": 0.4.3
-      astro: 7.3.8(jiti@2.7.0)(yaml@2.9.1)
+      astro: 7.3.8(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
       es-module-lexer: 3.0.3
 
   "@astrojs/prism@4.0.2":
@@ -3287,12 +3318,12 @@ snapshots:
       postcss-selector-parser: 6.0.10
       tailwindcss: 4.3.3
 
-  "@tailwindcss/vite@4.3.3(vite@8.3.4(jiti@2.7.0)(yaml@2.9.1))":
+  "@tailwindcss/vite@4.3.3(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))":
     dependencies:
       "@tailwindcss/node": 4.3.3
       "@tailwindcss/oxide": 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.3.4(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
 
   "@tybys/wasm-util@0.10.4":
     dependencies:
@@ -3317,6 +3348,10 @@ snapshots:
     dependencies:
       "@types/unist": 3.0.3
 
+  "@types/node@26.6.5":
+    dependencies:
+      undici-types: 8.9.0
+
   "@types/unist@3.0.3": {}
 
   "@ungap/structured-clone@1.4.0": {}
@@ -3332,7 +3367,7 @@ snapshots:
 
   aria-query@5.3.2: {}
 
-  astro@7.3.8(jiti@2.7.0)(yaml@2.9.1):
+  astro@7.3.8(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1):
     dependencies:
       "@astrojs/compiler-rs": 0.5.1
       "@astrojs/internal-helpers": 0.12.0
@@ -3381,13 +3416,13 @@ snapshots:
       unifont: 0.7.5
       unstorage: 1.17.5
       verkit: 0.5.0
-      vite: 8.3.4(jiti@2.7.0)(yaml@2.9.1)
-      vitefu: 1.1.3(vite@8.3.4(jiti@2.7.0)(yaml@2.9.1))
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
+      vitefu: 1.1.3(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.6.6
     optionalDependencies:
-      sharp: 0.35.5
+      sharp: 0.35.5(@types/node@26.6.5)
     transitivePeerDependencies:
       - "@azure/app-configuration"
       - "@azure/cosmos"
@@ -3420,6 +3455,10 @@ snapshots:
       - tsx
       - uploadthing
       - yaml
+
+  async-mutex@0.3.2:
+    dependencies:
+      tslib: 2.8.1
 
   axobject-query@4.1.0: {}
 
@@ -3939,7 +3978,7 @@ snapshots:
 
   semver@7.8.5: {}
 
-  sharp@0.35.5:
+  sharp@0.35.5(@types/node@26.6.5):
     dependencies:
       "@img/colour": 1.1.0
       detect-libc: 2.1.2
@@ -3970,6 +4009,7 @@ snapshots:
       "@img/sharp-win32-arm64": 0.35.5
       "@img/sharp-win32-ia32": 0.35.5
       "@img/sharp-win32-x64": 0.35.5
+      "@types/node": 26.6.5
 
   shiki@4.5.0:
     dependencies:
@@ -4028,14 +4068,15 @@ snapshots:
 
   trough@2.2.0: {}
 
-  tslib@2.8.1:
-    optional: true
+  tslib@2.8.1: {}
 
   ufo@1.6.4: {}
 
   ultrahtml@1.7.0: {}
 
   uncrypto@0.1.3: {}
+
+  undici-types@8.9.0: {}
 
   undici@8.11.2: {}
 
@@ -4103,7 +4144,7 @@ snapshots:
       "@types/unist": 3.0.3
       vfile-message: 4.0.3
 
-  vite@8.3.4(jiti@2.7.0)(yaml@2.9.1):
+  vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -4111,13 +4152,14 @@ snapshots:
       rolldown: 1.2.13
       tinyglobby: 0.2.17
     optionalDependencies:
+      "@types/node": 26.6.5
       fsevents: 2.3.3
       jiti: 2.7.0
       yaml: 2.9.1
 
-  vitefu@1.1.3(vite@8.3.4(jiti@2.7.0)(yaml@2.9.1)):
+  vitefu@1.1.3(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)):
     optionalDependencies:
-      vite: 8.3.4(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
 
   xxhash-wasm@1.1.0: {}
 
@@ -4126,6 +4168,10 @@ snapshots:
   yargs-parser@22.0.0: {}
 
   yocto-queue@1.2.2: {}
+
+  z3-solver@5.3.0:
+    dependencies:
+      async-mutex: 0.3.2
 
   zod@4.6.6: {}
 

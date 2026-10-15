@@ -1,0 +1,612 @@
+---
+const DEFAULT_PATTERN = 0x0966;
+---
+
+<onehot-calculator>
+  <button
+    type="button"
+    aria-label="Pattern Calculator"
+    data-calculator-open
+    class="flex size-10 cursor-pointer items-center justify-center border-4 border-neutral-900 bg-white text-xl text-neutral-900 hover:bg-neutral-100"
+  >
+    <i class="ph-bold ph-calculator" aria-hidden="true"></i>
+  </button>
+  <dialog
+    data-calculator-dialog
+    aria-labelledby="calculator-dialog-title"
+    closedby="any"
+    class="calculator-dialog m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-4xl touch-pan-y overflow-y-auto border-4 border-zinc-950 bg-white p-4 text-zinc-950 backdrop:bg-white/70 sm:p-6"
+  >
+    <header class="mb-4 flex items-center justify-between gap-4">
+      <h1 id="calculator-dialog-title" class="text-2xl font-semibold">
+        Pattern Calculator
+      </h1>
+      <form method="dialog">
+        <button
+          aria-label="Close"
+          class="flex size-10 cursor-pointer items-center justify-center border-4 border-zinc-950 text-xl hover:bg-neutral-100"
+        >
+          <i class="ph-bold ph-x" aria-hidden="true"></i>
+        </button>
+      </form>
+    </header>
+    <main class="space-y-4">
+      <div class="flex flex-wrap items-stretch gap-4 sm:gap-8">
+        <div
+          class="grid grid-cols-4 gap-1"
+          role="group"
+          aria-label="4 by 4 pattern editor"
+        >
+          {Array.from({ length: 16 }, (_, pixel) => (
+            <button
+              type="button"
+              class="pattern-pixel"
+              data-pattern-bit={pixel}
+              aria-label={`Row ${Math.floor(pixel / 4) + 1}, column ${(pixel % 4) + 1}`}
+              aria-pressed={Boolean(DEFAULT_PATTERN & (1 << pixel))}
+            />
+          ))}
+        </div>
+        <div class="flex flex-col justify-between gap-3">
+          <div class="space-y-2">
+            <label for="pattern-hex" class="block font-semibold">
+              Pattern (hex)
+            </label>
+            <div class="flex items-center gap-2 text-2xl font-semibold">
+              <span aria-hidden="true">0x</span>
+              <input
+                id="pattern-hex"
+                type="text"
+                value="0966"
+                inputmode="text"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                maxlength="6"
+                class="w-36 border-4 border-zinc-950 bg-white px-2 py-1 font-mono uppercase focus-visible:outline-4 focus-visible:outline-offset-2"
+              />
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p>Board Zoom</p>
+            <div
+              class="flex items-center gap-2"
+              aria-label="Board zoom controls"
+            >
+              <button
+                type="button"
+                data-zoom-out
+                aria-label="Zoom out"
+                class="border-4 border-zinc-950 px-3 py-1 hover:bg-neutral-100"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                data-zoom-reset
+                aria-label="Reset board zoom"
+                aria-live="polite"
+                class="border-4 border-zinc-950 px-3 py-1 font-mono hover:bg-neutral-100"
+              >
+                100%
+              </button>
+              <button
+                type="button"
+                data-zoom-in
+                aria-label="Zoom in"
+                class="border-4 border-zinc-950 px-3 py-1 hover:bg-neutral-100"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p id="calculator-error" role="status" hidden></p>
+
+      <div class="board-scroll border-4 border-zinc-950 bg-white">
+        <svg
+          id="proof-board"
+          xmlns="http://www.w3.org/2000/svg"
+          width="768"
+          height="768"
+          viewBox="0 0 768 768"
+          role="img"
+          aria-label="Board solution loading"
+        ></svg>
+      </div>
+    </main>
+  </dialog>
+</onehot-calculator>
+
+<style>
+  .pattern-pixel {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 4px solid #111;
+    background: white;
+    cursor: pointer;
+  }
+
+  .pattern-pixel[aria-pressed="true"] {
+    background: #111;
+  }
+
+  .pattern-pixel:focus-visible {
+    outline: 3px solid #555;
+    outline-offset: 2px;
+  }
+
+  .board-scroll {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(60dvh, 48rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-x pan-y;
+  }
+
+  .board-scroll svg {
+    display: block;
+    width: 768px;
+    height: auto;
+    max-width: none;
+  }
+
+  .calculator-dialog::backdrop {
+    overscroll-behavior: contain;
+  }
+</style>
+
+<script>
+  import {
+    createDemoBoard,
+    DEMO_SOURCES,
+  } from "../../games/onehot/board/core/demo-board";
+  import { cellKey } from "../../games/onehot/board/core/types";
+  import type {
+    Board,
+    Cell,
+    Evaluation,
+    Pattern,
+  } from "../../games/onehot/board/core/types";
+  import { evaluateBoard, flowsOf } from "../../games/onehot/board/rules";
+  import {
+    cssGateDepthColor,
+    maxPoweredGateDepth,
+  } from "../../games/onehot/board/view/gate-depth-colors";
+
+  type ProofManifest = {
+    version: number;
+    width: number;
+    height: number;
+    patterns: number;
+    recordBytes: number;
+    sha256: string;
+    sources: { x: number; y: number; pattern: number }[];
+    targets: { x: number; y: number }[];
+  };
+
+  type ProofRecord = {
+    outputCell: Cell;
+    depth: number;
+    gateCount: number;
+    board: Board;
+    evaluation: Evaluation;
+    litTargets: number;
+  };
+
+  const RECORD_BYTES = 136;
+  const BOARD_SIDE = 32;
+  const CELL_SIZE = 24;
+  const DEFAULT_PATTERN = 0x0966;
+  const STORAGE_KEY = "onehot.calculator-state";
+  const calculator = document.querySelector<HTMLElement>("onehot-calculator")!;
+  const dialog = calculator.querySelector<HTMLDialogElement>(
+    "[data-calculator-dialog]",
+  )!;
+  const openButton = calculator.querySelector<HTMLButtonElement>(
+    "[data-calculator-open]",
+  )!;
+  const patternInput =
+    calculator.querySelector<HTMLInputElement>("#pattern-hex")!;
+  const patternButtons = [
+    ...calculator.querySelectorAll<HTMLButtonElement>("[data-pattern-bit]"),
+  ];
+  const boardSvg = calculator.querySelector<SVGSVGElement>("#proof-board")!;
+  const zoomOutButton =
+    calculator.querySelector<HTMLButtonElement>("[data-zoom-out]")!;
+  const zoomResetButton =
+    calculator.querySelector<HTMLButtonElement>("[data-zoom-reset]")!;
+  const zoomInButton =
+    calculator.querySelector<HTMLButtonElement>("[data-zoom-in]")!;
+  const statusText =
+    calculator.querySelector<HTMLElement>("#calculator-error")!;
+  let selectedPattern = DEFAULT_PATTERN;
+  let renderSequence = 0;
+  let boardScale = 1;
+
+  function rememberState(): void {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          open: dialog.open,
+          pattern: selectedPattern,
+          zoom: boardScale,
+        }),
+      );
+    } catch {}
+  }
+
+  let restoreOpen = false;
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+    if (saved && typeof saved === "object") {
+      restoreOpen = saved.open === true;
+      if (
+        Number.isInteger(saved.pattern) &&
+        saved.pattern >= 0 &&
+        saved.pattern <= 65535
+      )
+        selectedPattern = saved.pattern;
+      if (typeof saved.zoom === "number" && saved.zoom >= 1 && saved.zoom <= 3)
+        boardScale = saved.zoom;
+    }
+  } catch {}
+
+  function updateBoardZoom(): void {
+    boardSvg.style.width = `${Math.round(768 * boardScale)}px`;
+    zoomResetButton.textContent = `${Math.round(boardScale * 100)}%`;
+    zoomOutButton.disabled = boardScale <= 1;
+    zoomInButton.disabled = boardScale >= 3;
+  }
+
+  function hexPattern(pattern: number): string {
+    return pattern.toString(16).padStart(4, "0").toUpperCase();
+  }
+
+  function updateEditor(): void {
+    patternInput.value = hexPattern(selectedPattern);
+    patternInput.removeAttribute("aria-invalid");
+    for (const button of patternButtons) {
+      const bit = Number(button.dataset.patternBit);
+      button.setAttribute(
+        "aria-pressed",
+        String(Boolean(selectedPattern & (1 << bit))),
+      );
+    }
+  }
+
+  async function loadArchive(): Promise<Uint8Array> {
+    const [manifestResponse, archiveResponse] = await Promise.all([
+      fetch("/games/onehot/patterns/manifest.json", { cache: "no-store" }),
+      fetch("/games/onehot/patterns/boards.bin.gz", { cache: "no-store" }),
+    ]);
+    if (!manifestResponse.ok || !archiveResponse.ok)
+      throw new Error("Could not load the verified boards.");
+    const manifest = (await manifestResponse.json()) as ProofManifest;
+    if (
+      manifest.version !== 1 ||
+      manifest.width !== BOARD_SIDE ||
+      manifest.height !== BOARD_SIDE ||
+      manifest.patterns !== 65536 ||
+      manifest.recordBytes !== RECORD_BYTES ||
+      manifest.sources.length !== DEMO_SOURCES.length ||
+      manifest.targets.length !== 4 ||
+      !manifest.sources.every((source, index) => {
+        const actual = DEMO_SOURCES[index];
+        return (
+          actual?.cell.x === source.x &&
+          actual.cell.y === source.y &&
+          actual.pattern === source.pattern
+        );
+      })
+    )
+      throw new Error("The verified board archive does not match this board.");
+    const downloaded = await archiveResponse.arrayBuffer();
+    let decompressed = downloaded;
+    if (downloaded.byteLength !== manifest.patterns * RECORD_BYTES) {
+      const header = new Uint8Array(
+        downloaded,
+        0,
+        Math.min(2, downloaded.byteLength),
+      );
+      if (
+        header[0] !== 0x1f ||
+        header[1] !== 0x8b ||
+        !("DecompressionStream" in window)
+      )
+        throw new Error("This browser cannot open the verified board archive.");
+      decompressed = await new Response(
+        new Blob([downloaded])
+          .stream()
+          .pipeThrough(new DecompressionStream("gzip")),
+      ).arrayBuffer();
+    }
+    if (decompressed.byteLength !== manifest.patterns * RECORD_BYTES)
+      throw new Error("The verified board archive has an invalid length.");
+    if (crypto.subtle && /^[0-9a-f]{64}$/i.test(manifest.sha256)) {
+      const hash = await crypto.subtle.digest("SHA-256", decompressed);
+      const actualHash = [...new Uint8Array(hash)]
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+      if (actualHash !== manifest.sha256.toLowerCase())
+        throw new Error("The verified board archive failed its checksum.");
+    }
+    return new Uint8Array(decompressed);
+  }
+
+  let archivePromise: Promise<Uint8Array> | undefined;
+
+  function decodeRecord(archive: Uint8Array, pattern: Pattern): ProofRecord {
+    const recordOffset = pattern * RECORD_BYTES;
+    const view = new DataView(
+      archive.buffer,
+      archive.byteOffset + recordOffset,
+      8,
+    );
+    const storedPattern = view.getUint16(0, true);
+    const outputIndex = view.getUint16(2, true);
+    const depth = view.getUint16(4, true);
+    const gateCount = view.getUint16(6, true);
+    if (storedPattern !== pattern || outputIndex >= BOARD_SIDE * BOARD_SIDE)
+      throw new Error("The selected solution is invalid.");
+    const board = createDemoBoard(() => 0);
+    const targetCells: Cell[] = [];
+    for (const [key, terrain] of board.terrain) {
+      if (terrain.type !== "target") continue;
+      board.terrain.set(key, { type: "target", pattern, filled: 0 });
+      const [x, y] = key.split(",").map(Number);
+      targetCells.push({ x: x!, y: y! });
+    }
+    if (targetCells.length !== 4)
+      throw new Error("The board has an invalid target layout.");
+    let countedGates = 0;
+    for (let cellIndex = 0; cellIndex < BOARD_SIDE * BOARD_SIDE; cellIndex++) {
+      const byte = archive[recordOffset + 8 + (cellIndex >> 3)]!;
+      if (!(byte & (1 << (cellIndex & 7)))) continue;
+      const cell = {
+        x: cellIndex % BOARD_SIDE,
+        y: Math.floor(cellIndex / BOARD_SIDE),
+      };
+      const key = cellKey(cell);
+      if (board.terrain.has(key))
+        throw new Error("A solution gate overlaps the board terrain.");
+      board.gates.set(key, { id: ++countedGates, cell });
+    }
+    if (countedGates !== gateCount)
+      throw new Error("The solution gate count is invalid.");
+    board.nextGateId = countedGates + 1;
+    const evaluation = evaluateBoard(board);
+    const outputCell = {
+      x: outputIndex % BOARD_SIDE,
+      y: Math.floor(outputIndex / BOARD_SIDE),
+    };
+    const outputNode = evaluation.get(cellKey(outputCell));
+    if (
+      !board.gates.has(cellKey(outputCell)) ||
+      outputNode?.gives !== pattern ||
+      outputNode.step !== depth
+    )
+      throw new Error("The selected board does not produce this pattern.");
+    const litTargets = targetCells.filter((cell) => {
+      const node = evaluation.get(cellKey(cell));
+      return (
+        node?.lit === true &&
+        node.wants === pattern &&
+        node.takes.some((take) => take.pattern === pattern)
+      );
+    }).length;
+    if (litTargets < 1)
+      throw new Error("The selected board does not feed a target.");
+    return { outputCell, depth, gateCount, board, evaluation, litTargets };
+  }
+
+  function patternGlyph(
+    pattern: number,
+    cell: Cell,
+    foreground: string,
+    background: string,
+  ): string {
+    const x = cell.x * CELL_SIZE + 4;
+    const y = cell.y * CELL_SIZE + 4;
+    let pixels = "";
+    for (let pixel = 0; pixel < 16; pixel++) {
+      const column = pixel % 4;
+      const row = Math.floor(pixel / 4);
+      const color = pattern & (1 << pixel) ? foreground : background;
+      pixels += `<rect x="${x + column * 4}" y="${y + row * 4}" width="3.4" height="3.4" fill="${color}"/>`;
+    }
+    return pixels;
+  }
+
+  function tileMarkup(
+    cell: Cell,
+    pattern: number | null,
+    kind: "source" | "gate" | "target",
+    selected: boolean,
+    title: string,
+    borderColor: string,
+  ): string {
+    const x = cell.x * CELL_SIZE + 2;
+    const y = cell.y * CELL_SIZE + 2;
+    const borderWidth =
+      kind === "target" || selected ? 3 : kind === "source" ? 2 : 1;
+    const fill = kind === "source" ? "#e5e5e5" : "#fff";
+    const border = borderColor;
+    const base = `<rect x="${x}" y="${y}" width="20" height="20" fill="${fill}" stroke="${border}" stroke-width="${borderWidth}"/>`;
+    const inner =
+      pattern === null
+        ? ""
+        : patternGlyph(
+            pattern,
+            cell,
+            "#111",
+            kind === "source" ? "#c7c7c7" : "#eee",
+          );
+    const targetBorder =
+      kind === "target"
+        ? `<rect x="${x + 2}" y="${y + 2}" width="16" height="16" fill="none" stroke="#111" stroke-width="0.7"/>`
+        : "";
+    return `<g><title>${title}</title>${base}${targetBorder}${inner}</g>`;
+  }
+
+  function renderBoard(pattern: Pattern, proof: ProofRecord): void {
+    const { board, evaluation, outputCell } = proof;
+    const maximumGateDepth = maxPoweredGateDepth(
+      board.gates.keys(),
+      evaluation,
+    );
+    const lines = flowsOf(board, evaluation).map((flow) => {
+      const x1 = (flow.giver.x + 0.5) * CELL_SIZE;
+      const y1 = (flow.giver.y + 0.5) * CELL_SIZE;
+      const x2 = (flow.taker.x + 0.5) * CELL_SIZE;
+      const y2 = (flow.taker.y + 0.5) * CELL_SIZE;
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#777" stroke-width="1.6" marker-end="url(#flow-arrow)"/>`;
+    });
+    const nodes: string[] = [];
+    for (const source of DEMO_SOURCES)
+      nodes.push(
+        tileMarkup(
+          source.cell,
+          source.pattern,
+          "source",
+          false,
+          `Source at (${source.cell.x}, ${source.cell.y}): 0x${hexPattern(source.pattern)}`,
+          "#111",
+        ),
+      );
+    for (const gate of board.gates.values()) {
+      const node = evaluation.get(cellKey(gate.cell));
+      const isOutput =
+        gate.cell.x === outputCell.x && gate.cell.y === outputCell.y;
+      const description =
+        node?.gives === null || node?.gives === undefined
+          ? `Gate at (${gate.cell.x}, ${gate.cell.y}): unlit`
+          : `Gate at (${gate.cell.x}, ${gate.cell.y}): 0x${hexPattern(node.gives)}, step ${node.step}`;
+      nodes.push(
+        tileMarkup(
+          gate.cell,
+          node?.gives ?? null,
+          "gate",
+          isOutput,
+          description,
+          node?.gives !== null && node?.gives !== undefined
+            ? cssGateDepthColor(node.step ?? 1, maximumGateDepth)
+            : "#aaa",
+        ),
+      );
+    }
+    for (const [key, terrain] of board.terrain) {
+      if (terrain.type !== "target") continue;
+      const [x, y] = key.split(",").map(Number);
+      const cell = { x: x!, y: y! };
+      const node = evaluation.get(key);
+      nodes.push(
+        tileMarkup(
+          cell,
+          pattern,
+          "target",
+          node?.lit === true,
+          `Target at (${x}, ${y}): 0x${hexPattern(pattern)}, ${node?.lit ? "lit" : "unlit"}`,
+          "#111",
+        ),
+      );
+    }
+    boardSvg.innerHTML = `<defs><pattern id="board-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e5e5e5" stroke-width="0.7"/></pattern><marker id="flow-arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#777"/></marker></defs><rect width="768" height="768" fill="#fff"/><rect width="768" height="768" fill="url(#board-grid)"/>${lines.join("")}${nodes.join("")}`;
+    boardSvg.setAttribute(
+      "aria-label",
+      `Pattern 0x${hexPattern(pattern)}: ${proof.gateCount} placed gates, ${proof.depth} signal steps, ${proof.litTargets} of 4 targets lit`,
+    );
+  }
+
+  async function renderSelection(): Promise<void> {
+    const currentSequence = ++renderSequence;
+    statusText.hidden = true;
+    try {
+      archivePromise ??= loadArchive().catch((error) => {
+        archivePromise = undefined;
+        throw error;
+      });
+      const archive = await archivePromise;
+      if (currentSequence !== renderSequence) return;
+      const proof = decodeRecord(archive, selectedPattern);
+      renderBoard(selectedPattern, proof);
+    } catch (error) {
+      if (currentSequence !== renderSequence) return;
+      boardSvg.innerHTML = "";
+      boardSvg.setAttribute("aria-label", "Verified board unavailable");
+      statusText.hidden = false;
+      statusText.textContent =
+        error instanceof Error ? error.message : "Could not verify this board.";
+    }
+  }
+
+  for (const button of patternButtons) {
+    button.addEventListener("click", () => {
+      selectedPattern ^= 1 << Number(button.dataset.patternBit);
+      updateEditor();
+      rememberState();
+      void renderSelection();
+    });
+  }
+  patternInput.addEventListener("input", () => {
+    const match = /^(?:0x)?([0-9a-f]{1,4})$/i.exec(patternInput.value.trim());
+    if (!match) {
+      renderSequence++;
+      patternInput.setAttribute("aria-invalid", "true");
+      statusText.hidden = false;
+      statusText.textContent = "Enter up to four hex digits.";
+      return;
+    }
+    selectedPattern = Number.parseInt(match[1]!, 16);
+    patternInput.removeAttribute("aria-invalid");
+    for (const button of patternButtons) {
+      const bit = Number(button.dataset.patternBit);
+      button.setAttribute(
+        "aria-pressed",
+        String(Boolean(selectedPattern & (1 << bit))),
+      );
+    }
+    rememberState();
+    void renderSelection();
+  });
+  zoomOutButton.addEventListener("click", () => {
+    boardScale = Math.max(1, boardScale - 0.5);
+    updateBoardZoom();
+    rememberState();
+  });
+  zoomResetButton.addEventListener("click", () => {
+    boardScale = 1;
+    updateBoardZoom();
+    rememberState();
+  });
+  zoomInButton.addEventListener("click", () => {
+    boardScale = Math.min(3, boardScale + 0.5);
+    updateBoardZoom();
+    rememberState();
+  });
+  updateEditor();
+  updateBoardZoom();
+  function openCalculator(): void {
+    dialog.showModal();
+    rememberState();
+    calculator.dispatchEvent(
+      new CustomEvent("onehot-modal-toggle", { bubbles: true }),
+    );
+    void renderSelection();
+  }
+  openButton.addEventListener("click", openCalculator);
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener("close", () => {
+    rememberState();
+    calculator.dispatchEvent(
+      new CustomEvent("onehot-modal-toggle", { bubbles: true }),
+    );
+  });
+  if (restoreOpen) openCalculator();
+</script>

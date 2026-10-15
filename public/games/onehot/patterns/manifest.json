@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "width": 32,
+  "height": 32,
+  "patterns": 65536,
+  "minimumPrimitiveCount": 5,
+  "primitiveLowerBound": "Four sources provide at most fifteen distinct nonzero pixel signatures; sixteen independently selectable pixels require at least five.",
+  "sources": [
+    {
+      "x": 12,
+      "y": 12,
+      "pattern": 43690
+    },
+    {
+      "x": 20,
+      "y": 12,
+      "pattern": 52428
+    },
+    {
+      "x": 12,
+      "y": 20,
+      "pattern": 61680
+    },
+    {
+      "x": 20,
+      "y": 20,
+      "pattern": 65280
+    },
+    {
+      "x": 16,
+      "y": 16,
+      "pattern": 65535
+    }
+  ],
+  "targets": [
+    {
+      "x": 6,
+      "y": 6
+    },
+    {
+      "x": 25,
+      "y": 6
+    },
+    {
+      "x": 6,
+      "y": 25
+    },
+    {
+      "x": 25,
+      "y": 25
+    }
+  ],
+  "recordBytes": 136,
+  "recordOrder": "pattern",
+  "recordFields": [
+    "pattern:uint16le",
+    "outputCell:uint16le",
+    "outputDepth:uint16le",
+    "placedGates:uint16le",
+    "gateCells:1024bits-lsb-first"
+  ],
+  "sha256": "6a45d29b8b57c22cc9cc61df736828dafc1ae5db5abfcc8047ef6100085a072b",
+  "archiveGzipSha256": "e37c3d72da5c7605ee80f055400db369fa246bd33912348a7de226ae9cc34e65",
+  "difficulty": "Placed gates in the selected verified target-delivery witness; gate counts do not claim global optimality.",
+  "minimumGateCount": 1,
+  "maximumGateCount": 25,
+  "gateCountHistogram": {
+    "1": 5,
+    "2": 8,
+    "3": 23,
+    "4": 1,
+    "5": 70,
+    "6": 149,
+    "7": 375,
+    "8": 706,
+    "9": 1359,
+    "10": 1899,
+    "11": 1504,
+    "12": 3406,
+    "13": 5201,
+    "14": 6404,
+    "15": 7921,
+    "16": 8675,
+    "17": 8703,
+    "18": 6917,
+    "19": 5283,
+    "20": 3399,
+    "21": 1776,
+    "22": 949,
+    "23": 445,
+    "24": 345,
+    "25": 13
+  },
+  "witnessInputs": [
+    {
+      "sha256": "6a45d29b8b57c22cc9cc61df736828dafc1ae5db5abfcc8047ef6100085a072b",
+      "records": 65536
+    }
+  ]
+}

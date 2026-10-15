@@ -2,6 +2,7 @@ import { TAP_SLOP_PX } from "../../constants";
 
 const TAPPABLE = "a, button, dialog";
 const SCROLLABLE = "dialog";
+const NATIVE_CONTROLS = "input, textarea, select, [contenteditable]";
 
 type GestureEvent = Event & { scale?: number };
 
@@ -44,7 +45,7 @@ export function lockTouchGestures(signal?: AbortSignal): void {
     (event) => {
       const began = start;
       start = null;
-      if (!event.cancelable) return;
+      if (!event.cancelable || closestOf(event.target, NATIVE_CONTROLS)) return;
       event.preventDefault();
       const touch = event.changedTouches[0];
       if (!began || !touch || event.touches.length > 0) return;

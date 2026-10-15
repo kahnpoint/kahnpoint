@@ -158,8 +158,12 @@ export class BoardScene extends StepScene {
     });
   }
 
+  private get isComplete(): boolean {
+    return this.board.mode === "complete";
+  }
+
   protected runStep(input: PadInput): void {
-    if (this.board.mode === "complete") return;
+    if (this.isComplete) return;
     this.heldMove = { x: Math.sign(input.move.x), y: Math.sign(input.move.y) };
     this.previousPositions = this.board.players.map((player) => ({
       ...player.position,
@@ -203,6 +207,7 @@ export class BoardScene extends StepScene {
       : togglePreviewOf(this.board, this.evaluation, tile);
     for (const cue of this.board.cues) this.drawing.showCue(cue);
     if (
+      this.isComplete ||
       this.board.cues.length > 0 ||
       this.board.seconds - this.lastSavedSeconds >= 1
     ) {

@@ -28,7 +28,7 @@ const TARGET_CELLS: readonly Cell[] = [
   { x: 25, y: 25 },
 ];
 
-const DEMO_START: Cell = { x: 15, y: 13 };
+const DEMO_START: Cell = { x: 14, y: 14 };
 
 export function createDemoBoard(random: () => number = Math.random): Board {
   const terrain = new Map<string, Terrain>();
