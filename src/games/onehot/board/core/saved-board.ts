@@ -3,6 +3,9 @@ import { createPlayer } from "../player";
 import { createDemoBoard, DEMO_SOURCES } from "./demo-board";
 import { pixelCountOf } from "./patterns";
 import {
+  chooseEndlessPattern,
+  chooseTargetPattern,
+  isTargetPattern,
   targetLevelForGateCost,
   TARGETS_PER_STAGE,
   TOTAL_LEVELS,
@@ -273,6 +276,24 @@ export function loadBoard(storage?: StorageLike): Board | null {
     board.seconds = parsed.seconds;
     board.cues = [];
     board.mode = parsed.mode;
+    const existingPatterns = [...board.terrain.values()].flatMap((tile) =>
+      tile.type === "target" && isTargetPattern(tile.pattern)
+        ? [tile.pattern]
+        : [],
+    );
+    for (const tile of board.terrain.values()) {
+      if (tile.type !== "target" || isTargetPattern(tile.pattern)) continue;
+      tile.pattern =
+        board.mode === "endless"
+          ? chooseEndlessPattern(Math.random, existingPatterns)
+          : chooseTargetPattern(
+              board.completedTargets,
+              Math.random,
+              existingPatterns,
+            );
+      tile.filled = 0;
+      existingPatterns.push(tile.pattern);
+    }
     return board;
   } catch {
     return null;

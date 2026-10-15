@@ -1,8 +1,22 @@
 import verifiedCosts from "../../data/pattern-costs.json" with { type: "json" };
-import { FULL_PATTERN } from "./patterns";
+import { FULL_PATTERN, sourcePatternsOf } from "./patterns";
 import type { Pattern } from "./types";
 
+const sourcePatterns = new Set(sourcePatternsOf());
+const playablePatterns = verifiedCosts
+  .map((_, pattern) => pattern)
+  .filter((pattern) => !sourcePatterns.has(pattern));
+
 export const TARGETS_PER_STAGE = 4;
+
+export function isTargetPattern(pattern: Pattern): boolean {
+  return (
+    Number.isInteger(pattern) &&
+    pattern >= 0 &&
+    pattern <= FULL_PATTERN &&
+    !sourcePatterns.has(pattern)
+  );
+}
 export function buildLevelGateCaps(
   costs: readonly number[],
 ): readonly number[] {
@@ -12,7 +26,7 @@ export function buildLevelGateCaps(
   const maximum = available[available.length - 1]!;
   const caps: number[] = [];
   for (const requested of [
-    1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20,
+    1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20,
   ]) {
     const cap = Math.min(requested, maximum);
     const previous = caps[caps.length - 1] ?? 0;
@@ -28,7 +42,9 @@ export function buildLevelGateCaps(
   return caps;
 }
 
-export const LEVEL_GATE_CAPS = buildLevelGateCaps(verifiedCosts);
+export const LEVEL_GATE_CAPS = buildLevelGateCaps(
+  playablePatterns.map((pattern) => verifiedCosts[pattern]!),
+);
 export const TOTAL_LEVELS = LEVEL_GATE_CAPS.length;
 
 let cachedLevel = 0;
@@ -64,7 +80,7 @@ export function targetPatternsFor(
   const previousCap = LEVEL_GATE_CAPS[level - 2] ?? 0;
   if (cachedLevel !== level) {
     cachedPatterns = [];
-    for (let pattern = 0; pattern <= FULL_PATTERN; pattern++) {
+    for (const pattern of playablePatterns) {
       const gateCost = verifiedCosts[pattern];
       if (gateCost > previousCap && gateCost <= gateCap)
         cachedPatterns.push(pattern);
@@ -80,10 +96,14 @@ export function chooseEndlessPattern(
 ): Pattern {
   let pattern = 0;
   for (let attempt = 0; attempt < 3; attempt++) {
-    pattern = Math.min(
-      FULL_PATTERN,
-      Math.max(0, Math.floor(random() * (FULL_PATTERN + 1))),
-    );
+    const sample = random();
+    const index = Number.isFinite(sample)
+      ? Math.min(
+          playablePatterns.length - 1,
+          Math.max(0, Math.floor(sample * playablePatterns.length)),
+        )
+      : 0;
+    pattern = playablePatterns[index]!;
     if (!existingPatterns.includes(pattern)) break;
   }
   return pattern;
