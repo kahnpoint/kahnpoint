@@ -4,7 +4,7 @@ import {
   STREAM_CELLS_PER_SECOND,
   STREAM_SPACING_CELLS,
   TILE_PIXELS,
-} from "../../games/xor/constants";
+} from "../../games/onehot/constants";
 import { TONES } from "./scene-units";
 
 interface Props {
@@ -31,7 +31,7 @@ const seconds = STREAM_SPACING_CELLS / STREAM_CELLS_PER_SECOND;
   <svg x={left} y={top} width={length} height={PATTERN_PIXEL} overflow="hidden">
     <rect width={length} height={PATTERN_PIXEL} fill={TONES.line}></rect>
     <g
-      class="xor-help-stream"
+      class="onehot-help-stream"
       style={`--stream-travel: ${travel}px; animation-duration: ${seconds}s`}
     >
       {squares.map((x) => (

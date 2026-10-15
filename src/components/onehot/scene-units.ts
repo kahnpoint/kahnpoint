@@ -5,7 +5,7 @@ import {
   LINE_COLOR,
   MID_TONE,
   PAPER_COLOR,
-} from "../../games/xor/constants";
+} from "../../games/onehot/constants";
 
 export const SCENE_SCALE = 5;
 

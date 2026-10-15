@@ -5,6 +5,8 @@ import { MOVE_KEYS } from "../../lib/input/keyboard-input";
 import { neutralPadInput } from "../../lib/input/pad";
 import type { PadOverride } from "../../lib/input/pad";
 import { createDemoBoard } from "../core/demo-board";
+import { clearSavedBoard, loadBoard, saveBoard } from "../core/saved-board";
+import { targetLevelFor, TOTAL_LEVELS } from "../core/target-patterns";
 import { cellKey, tileOf } from "../core/types";
 import type { Board, Cell, Evaluation, PadInput, Vector } from "../core/types";
 import { stepPlayer } from "../player";
@@ -23,6 +25,8 @@ export type BoardHandle = {
   readonly evaluation: Evaluation;
   readonly playerScreen: Vector;
   press: (input: PadOverride, steps: number) => void;
+  restartGame: () => void;
+  continueEndless: () => void;
 };
 
 declare global {
@@ -32,7 +36,9 @@ declare global {
 }
 
 export class BoardScene extends StepScene {
-  private board = createDemoBoard();
+  private board = loadBoard() ?? createDemoBoard();
+  private lastSavedSeconds = 0;
+  private lastHudState = "";
   private evaluation: Evaluation = new Map();
   private preview: TogglePreview | null = null;
   private toggledTile: Cell | null = null;
@@ -55,7 +61,9 @@ export class BoardScene extends StepScene {
 
     const scene = this;
     window.__board = {
-      board: this.board,
+      get board() {
+        return scene.board;
+      },
       get evaluation() {
         return scene.evaluation;
       },
@@ -63,7 +71,65 @@ export class BoardScene extends StepScene {
         return scene.drawing.playerScreen;
       },
       press: (input, steps) => this.press(input, steps),
+      restartGame: () => this.restartGame(),
+      continueEndless: () => this.continueEndless(),
     };
+    const teardown = new AbortController();
+    const persist = (): void => {
+      saveBoard(this.board);
+    };
+    window.addEventListener("pagehide", persist, { signal: teardown.signal });
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.hidden) persist();
+      },
+      { signal: teardown.signal },
+    );
+    this.events.once("destroy", () => {
+      persist();
+      teardown.abort();
+    });
+    saveBoard(this.board);
+    this.updateHud();
+  }
+
+  private restartGame(): void {
+    clearSavedBoard();
+    this.board = createDemoBoard();
+    this.evaluation = evaluateBoard(this.board);
+    this.preview = null;
+    this.toggledTile = null;
+    this.heldMove = { x: 0, y: 0 };
+    this.previousPositions = this.board.players.map((player) => ({
+      ...player.position,
+    }));
+    this.lastSavedSeconds = 0;
+    this.drawing.clearEffects();
+    this.resetView();
+    saveBoard(this.board);
+    this.showUsableButtons();
+    this.updateHud();
+  }
+
+  private continueEndless(): void {
+    if (this.board.mode !== "complete") return;
+    this.board.mode = "endless";
+    saveBoard(this.board);
+    this.updateHud();
+  }
+
+  private updateHud(): void {
+    const detail = {
+      points: this.board.score,
+      level: targetLevelFor(this.board.completedTargets),
+      totalLevels: TOTAL_LEVELS,
+      mode: this.board.mode,
+    };
+    const state = JSON.stringify(detail);
+    if (state === this.lastHudState) return;
+    this.lastHudState = state;
+    document.dispatchEvent(new CustomEvent("onehot-progress", { detail }));
   }
 
   private playerPositionsAt(blend: number): Vector[] {
@@ -93,6 +159,7 @@ export class BoardScene extends StepScene {
   }
 
   protected runStep(input: PadInput): void {
+    if (this.board.mode === "complete") return;
     this.heldMove = { x: Math.sign(input.move.x), y: Math.sign(input.move.y) };
     this.previousPositions = this.board.players.map((player) => ({
       ...player.position,
@@ -135,8 +202,16 @@ export class BoardScene extends StepScene {
       ? null
       : togglePreviewOf(this.board, this.evaluation, tile);
     for (const cue of this.board.cues) this.drawing.showCue(cue);
+    if (
+      this.board.cues.length > 0 ||
+      this.board.seconds - this.lastSavedSeconds >= 1
+    ) {
+      saveBoard(this.board);
+      this.lastSavedSeconds = this.board.seconds;
+    }
     this.board.cues.length = 0;
     this.showUsableButtons();
+    this.updateHud();
   }
 
   private showUsableButtons(): void {

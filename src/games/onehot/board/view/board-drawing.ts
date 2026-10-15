@@ -17,8 +17,6 @@ import {
   PATTERN_SIDE,
   POP_GROWTH,
   POP_SECONDS,
-  SCORE_CENTRE_CSS_PIXELS,
-  SCORE_PIXELS_PER_CELL,
   STREAM_CELLS_PER_SECOND,
   STREAM_SPACING_CELLS,
   TILE_PIXELS,
@@ -37,19 +35,6 @@ import type {
 } from "../core/types";
 import { flowKey, flowsOf } from "../rules";
 import type { TogglePreview } from "../rules";
-
-const DIGIT_ROWS: readonly (readonly number[])[] = [
-  [0b111, 0b101, 0b101, 0b101, 0b111],
-  [0b010, 0b110, 0b010, 0b010, 0b111],
-  [0b111, 0b001, 0b111, 0b100, 0b111],
-  [0b111, 0b001, 0b111, 0b001, 0b111],
-  [0b101, 0b101, 0b111, 0b001, 0b001],
-  [0b111, 0b100, 0b111, 0b001, 0b111],
-  [0b111, 0b100, 0b111, 0b101, 0b111],
-  [0b111, 0b001, 0b001, 0b001, 0b001],
-  [0b111, 0b101, 0b111, 0b101, 0b111],
-  [0b111, 0b101, 0b111, 0b001, 0b111],
-];
 
 const GATE_TONE = MID_TONE;
 const TARGET_TONE = LIGHT_TONE;
@@ -88,6 +73,11 @@ export class BoardDrawing {
 
   constructor(scene: Phaser.Scene) {
     this.pen = new PixelPen(scene, TILE_PIXELS);
+  }
+
+  clearEffects(): void {
+    this.effects = [];
+    this.faceShift = { x: 0, y: 0 };
   }
 
   showCue(cue: Cue): void {
@@ -228,29 +218,6 @@ export class BoardDrawing {
       const age = this.seconds - (effect.start as number);
       this.pen.strokeFrame(effect.cell, GATE_TONE, 1 - age / FLASH_SECONDS);
     }
-    this.drawScore(Math.floor(board.score), view.width, view.pixelRatio);
-  }
-
-  private drawScore(points: number, width: number, pixelRatio: number): void {
-    const pixel = Math.round(this.pen.cellPixels / SCORE_PIXELS_PER_CELL);
-    const digits = [...String(points)];
-    const left = Math.round((width - (digits.length * 4 - 1) * pixel) / 2);
-    const top = Math.round(SCORE_CENTRE_CSS_PIXELS * pixelRatio - 2.5 * pixel);
-    this.pen.graphics.fillStyle(INK_COLOR, 1);
-    digits.forEach((digit, place) => {
-      const rows = DIGIT_ROWS[Number(digit)] as readonly number[];
-      rows.forEach((row, y) => {
-        for (let x = 0; x < 3; x++) {
-          if (row & (0b100 >> x))
-            this.pen.graphics.fillRect(
-              left + (place * 4 + x) * pixel,
-              top + y * pixel,
-              pixel,
-              pixel,
-            );
-        }
-      });
-    });
   }
 
   private popScaleAt(cell: Cell): number {

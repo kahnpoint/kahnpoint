@@ -29,6 +29,7 @@ export type PlayerControl = WalkControl & {
 };
 
 export type Board = {
+  mode: "levels" | "complete" | "endless";
   width: number;
   height: number;
   terrain: Map<string, Terrain>;
@@ -36,6 +37,7 @@ export type Board = {
   players: Player[];
   nextGateId: number;
   score: number;
+  completedTargets: number;
   seconds: number;
   cues: Cue[];
 };

@@ -35,7 +35,7 @@ export const TOUCH_DEAD_ZONE = 0.2;
 export const TOUCH_AXIS_SLOPE = 0.38;
 
 export const DEMO_WIDTH = 32;
-export const DEMO_HEIGHT = 24;
+export const DEMO_HEIGHT = DEMO_WIDTH;
 
 export const STREAM_CELLS_PER_SECOND = 0.5;
 export const STREAM_SPACING_CELLS = 0.75;
@@ -56,9 +56,6 @@ export const LIGHT_TONE = 0xc8c8c8;
 export const BOUNDS_COLOR = 0xe4e4e4;
 export const IDLE_GATE_COLOR = 0xdcdcdc;
 export const LINE_COLOR = 0xe6e6e6;
-
-export const SCORE_PIXELS_PER_CELL = 8;
-export const SCORE_CENTRE_CSS_PIXELS = 44;
 
 export const POP_SECONDS = 0.15;
 export const POP_GROWTH = 0.3;

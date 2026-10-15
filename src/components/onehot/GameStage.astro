@@ -1,0 +1,41 @@
+<div id="onehot-stage" class="fixed inset-0 touch-none bg-white"></div>
+
+<script>
+  import { BoardScene } from "../../games/onehot/board/view/board-scene";
+  import { PAUSED_KEY } from "../../games/onehot/constants";
+  import { startGame } from "../../games/onehot/lib/engine/start-game";
+  import { lockTouchGestures } from "../../games/onehot/lib/input/gesture-lock";
+
+  lockTouchGestures();
+
+  const stage = document.getElementById("onehot-stage");
+  if (!stage) throw new Error("Missing #onehot-stage element.");
+  let game: ReturnType<typeof startGame> | undefined;
+  const syncPause = (): void => {
+    game?.registry.set(
+      PAUSED_KEY,
+      document.querySelector("dialog[open]") !== null ||
+        window.__board?.board.mode === "complete",
+    );
+  };
+  document.addEventListener("help-toggle", syncPause);
+  document.addEventListener("onehot-modal-toggle", syncPause);
+  document.addEventListener("onehot-progress", (event) => {
+    const progress = (event as CustomEvent).detail;
+    const points = document.querySelector("[data-onehot-points]");
+    const level = document.querySelector("[data-onehot-level]");
+    if (points) points.textContent = String(progress.points);
+    if (level)
+      level.textContent =
+        progress.mode === "endless"
+          ? "Endless"
+          : `Level ${progress.level}/${progress.totalLevels}`;
+    syncPause();
+  });
+  document.addEventListener("onehot-restart", () => {
+    window.__board?.restartGame();
+    syncPause();
+  });
+  game = startGame(BoardScene, stage);
+  syncPause();
+</script>

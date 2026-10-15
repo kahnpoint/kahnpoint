@@ -27,17 +27,15 @@ function bandPatternOf(
   return pattern;
 }
 
-export function sourcePatternsOf(side = PATTERN_SIDE): {
-  rows: Pattern[];
-  columns: Pattern[];
-} {
-  const bands = Math.ceil((side + 1) / 2);
-  const width = side - bands + 1;
-  const firsts = Array.from({ length: bands }, (_, band) => band);
-  return {
-    rows: firsts.map((first) => bandPatternOf("row", first, width, side)),
-    columns: firsts.map((first) => bandPatternOf("column", first, width, side)),
-  };
+export function sourcePatternsOf(): Pattern[] {
+  const coordinatePatterns = Array.from({ length: 4 }, (_, coordinateBit) => {
+    let pattern = 0;
+    for (let pixel = 0; pixel < PIXEL_COUNT; pixel++) {
+      if (pixel & (1 << coordinateBit)) pattern |= 1 << pixel;
+    }
+    return pattern;
+  });
+  return [...coordinatePatterns, FULL_PATTERN];
 }
 
 export function combinePatterns(patterns: readonly Pattern[]): Pattern {

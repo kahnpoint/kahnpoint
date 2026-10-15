@@ -3,13 +3,13 @@ import {
   combinePatterns,
   pixelCountOf,
   sourcePatternsOf,
-} from "../../games/xor/board/core/patterns";
+} from "../../games/onehot/board/core/patterns";
 import {
   PLACE_LABEL,
   REMOVE_LABEL,
   TILE_PIXELS,
-} from "../../games/xor/constants";
-import { PAD_SHAPE } from "../../games/xor/lib/input/touch-input";
+} from "../../games/onehot/constants";
+import { PAD_SHAPE } from "../../games/onehot/lib/input/touch-input";
 import HelpDialog from "../HelpDialog.astro";
 import ControlHint from "./ControlHint.astro";
 import FlowLine from "./FlowLine.astro";
@@ -17,19 +17,19 @@ import HelpScene from "./HelpScene.astro";
 import HelpStep from "./HelpStep.astro";
 import PatternPixels from "./PatternPixels.astro";
 import PlayerFace from "./PlayerFace.astro";
+import ResetButton from "./ResetButton.astro";
 import TileFrame from "./TileFrame.astro";
-import XorTable from "./XorTable.astro";
 
-const { columns, rows } = sourcePatternsOf();
-const [leftSource, rightSource] = [columns[0]!, columns[1]!];
+const sourcePatterns = sourcePatternsOf();
+const [leftSource, rightSource] = [sourcePatterns[0]!, sourcePatterns[1]!];
 const shared = leftSource & rightSource;
-const wanted = combinePatterns([columns[0]!, rows[0]!]);
+const wanted = combinePatterns([leftSource, rightSource]);
 
 const LOOP_SECONDS = 8;
 const keyframes = new Map<string, string>();
 
 function shownBetween(from: number, to = 100): string {
-  const name = `xor-help-shown-${from}-${to}`;
+  const name = `onehot-help-shown-${from}-${to}`;
   const stops = [
     from > 0 && `0%, ${from - 0.01}% { opacity: 0 }`,
     `${from}%, ${to === 100 ? 100 : to - 0.01}% { opacity: 1 }`,
@@ -39,7 +39,7 @@ function shownBetween(from: number, to = 100): string {
     name,
     `@keyframes ${name} { ${stops.join(" ")} } .${name} { animation-name: ${name} }`,
   );
-  return `xor-help-timed ${name}`;
+  return `onehot-help-timed ${name}`;
 }
 
 const PREVIEW_AT = 20;
@@ -90,35 +90,36 @@ const controls = [
 ];
 
 const css = `
-.xor-help-timed, .xor-help-walk, .xor-help-leave {
+.onehot-help-timed, .onehot-help-walk, .onehot-help-leave {
   animation-duration: ${LOOP_SECONDS}s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
-.xor-help-walk { animation-name: xor-help-walk; animation-timing-function: ease-out }
-@keyframes xor-help-walk {
+.onehot-help-walk { animation-name: onehot-help-walk; animation-timing-function: ease-out }
+@keyframes onehot-help-walk {
   0% { transform: translate(${TILE_PIXELS}px, 0) }
   ${PREVIEW_AT - 4}%, 100% { transform: translate(0, 0) }
 }
-.xor-help-leave { animation-name: xor-help-leave }
-@keyframes xor-help-leave {
+.onehot-help-leave { animation-name: onehot-help-leave }
+@keyframes onehot-help-leave {
   0%, ${LEAVE_AT}% { transform: translate(-${TILE_PIXELS}px, 0) }
   ${AWAY_AT}%, 100% { transform: translate(0, 0) }
 }
-.xor-help-stream { animation: xor-help-stream linear infinite }
-@keyframes xor-help-stream { to { transform: translate(var(--stream-travel), 0) } }
+.onehot-help-stream { animation: onehot-help-stream linear infinite }
+@keyframes onehot-help-stream { to { transform: translate(var(--stream-travel), 0) } }
 ${[...keyframes.values()].join("\n")}
 @media (prefers-reduced-motion: reduce) {
-  .xor-help-timed, .xor-help-walk, .xor-help-leave {
+  .onehot-help-timed, .onehot-help-walk, .onehot-help-leave {
     animation-delay: -${LOOP_SECONDS * 0.9}s;
     animation-play-state: paused;
   }
-  .xor-help-stream { animation: none }
+  .onehot-help-stream { animation: none }
 }
 `;
 ---
 
-<HelpDialog title="How to play" storageKey="xor-help-state">
+<HelpDialog title="How to play" storageKey="onehot-help-state">
+  <ResetButton slot="actions" />
   <ol class="space-y-8">
     <HelpStep title="1. Place gates">
       <HelpScene
@@ -130,13 +131,13 @@ ${[...keyframes.values()].join("\n")}
         <PatternPixels cell={0} pattern={leftSource} />
         <FlowLine from={0} to={2} class={scenes.linked} />
         <g class={scenes.walk}>
-          <PlayerFace cell={2} lean={-1} class="xor-help-walk" />
+          <PlayerFace cell={2} lean={-1} class="onehot-help-walk" />
         </g>
         <g class={scenes.preview}>
           <TileFrame cell={2} frame="ink" cornerless />
           <PatternPixels cell={2} pattern={leftSource} tone="mid" />
         </g>
-        <g class="xor-help-leave">
+        <g class="onehot-help-leave">
           <PlayerFace cell={3} lean={1} class={scenes.leaving} />
           <PlayerFace cell={3} class={scenes.away} />
         </g>
@@ -152,8 +153,8 @@ ${[...keyframes.values()].join("\n")}
       Move your character with
       <ControlHint keys={["W", "A", "S", "D"]} touch={PAD_SHAPE} />
       <span class="pointer-coarse:hidden">or the arrow keys.</span> Your
-      character can place and remove gates, which will connect to nearby sources
-      and other gates.
+      character can place and remove gates, which will automatically connect to
+      nearby sources and other gates.
       <dl class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 pointer-coarse:hidden">
         {controls.map(({ keys, action }) => (
           <div class="contents">
@@ -164,8 +165,8 @@ ${[...keyframes.values()].join("\n")}
           </div>
         ))}
       </dl>
-      As you move around, there will be light gray highlights that show what
-      toggling the current tile would do.
+      As you move around, you will be shown light gray highlights demonstrating
+      what toggling the current tile's gate would do.
     </HelpStep>
 
     <HelpStep title="2. Mix sources">
@@ -206,10 +207,9 @@ ${[...keyframes.values()].join("\n")}
           class={scenes.sharedBoth}
         />
       </HelpScene>
-      Gates can have multiple inputs, which will be XOR'd:
-      <XorTable />
-      In order for two gates to be connected, they must have different patterns
-      when placed.
+      Gates can have multiple inputs, which can be combined to make new outputs.
+      Each output pixel will be filled when exactly one of its input pixels is
+      filled.
     </HelpStep>
 
     <HelpStep title="3. Fill patterns">
@@ -235,8 +235,13 @@ ${[...keyframes.values()].join("\n")}
         <PatternPixels cell={2} pattern={wanted} pixelClasses={fillClasses} />
       </HelpScene>
       The play area has unfilled light gray patterns, which will fill up when
-      connected to a matching gate. Each filled pixel scores a point, and the
-      pattern will change and move once filled.
+      connected to a matching gate. Each filled pixel scores a point, and when
+      the pattern is filled, it will move location and change its pattern.
+      <p class="mt-3">
+        Completing four patterns will increase the level and the complexity of
+        the subsequent patterns.
+      </p>
+      <p class="mt-3">Have fun!</p>
     </HelpStep>
   </ol>
 </HelpDialog>

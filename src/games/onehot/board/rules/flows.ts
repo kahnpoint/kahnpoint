@@ -1,5 +1,11 @@
 import { STREAM_CELLS_PER_SECOND, STREAM_SPACING_CELLS } from "../../constants";
 import { pixelCountOf } from "../core/patterns";
+import {
+  chooseEndlessPattern,
+  chooseTargetPattern,
+  TARGETS_PER_STAGE,
+  TOTAL_LEVELS,
+} from "../core/target-patterns";
 import { cellKey, tileOf } from "../core/types";
 import type {
   Board,
@@ -81,26 +87,6 @@ export function togglePreviewOf(
   };
 }
 
-function freshWantsOf(board: Board): Pattern[] {
-  const sources: Pattern[] = [];
-  const wanted = new Set<Pattern>();
-  for (const terrain of board.terrain.values()) {
-    if (terrain.type === "source") sources.push(terrain.pattern);
-    if (terrain.type === "target") wanted.add(terrain.pattern);
-  }
-  const fresh = new Set<Pattern>();
-  for (let chosen = 1; chosen < 1 << sources.length; chosen++) {
-    if ((chosen & (chosen - 1)) === 0) continue;
-    const pattern = sources.reduce(
-      (made, source, index) => (chosen & (1 << index) ? made ^ source : made),
-      0,
-    );
-    if (pattern !== 0 && !wanted.has(pattern) && !sources.includes(pattern))
-      fresh.add(pattern);
-  }
-  return [...fresh];
-}
-
 function arrivalsBetween(cells: number, from: number, to: number): number {
   const reached = (seconds: number): number =>
     Math.floor(
@@ -116,6 +102,7 @@ export function fillTargets(
   seconds: number,
   random: () => number,
 ): Cell[] {
+  if (board.mode === "complete") return [];
   const arrived: Cell[] = [];
   for (const [key, node] of evaluation) {
     const target = board.terrain.get(key);
@@ -145,8 +132,17 @@ export function fillTargets(
           if (skip-- === 0) break;
         }
         target.filled++;
+        if (target.filled === pixels) {
+          board.completedTargets++;
+          if (
+            board.mode === "levels" &&
+            board.completedTargets >= TOTAL_LEVELS * TARGETS_PER_STAGE
+          )
+            board.mode = "complete";
+        }
         board.score++;
         board.cues.push({ type: "fill", cell: node.cell, from, pixel });
+        if (board.mode === "complete") return arrived;
       }
     }
     if (!moves) continue;
@@ -154,19 +150,35 @@ export function fillTargets(
       board.players.map((player) => cellKey(tileOf(player.position))),
     );
     const open: Cell[] = [];
+    const sourceCells = [...board.terrain.entries()].flatMap(
+      ([sourceKey, terrain]) => {
+        if (terrain.type !== "source") return [];
+        const [x, y] = sourceKey.split(",").map(Number);
+        return [{ x, y }];
+      },
+    );
     for (let y = 0; y < board.height; y++) {
       for (let x = 0; x < board.width; x++) {
-        if (isOpenCell(board, { x, y }) && !taken.has(cellKey({ x, y })))
+        if (
+          isOpenCell(board, { x, y }) &&
+          !taken.has(cellKey({ x, y })) &&
+          !sourceCells.some((source) => source.x === x || source.y === y)
+        )
           open.push({ x, y });
       }
     }
     const cell = open[Math.floor(random() * open.length)];
     if (!cell) continue;
-    const wants = freshWantsOf(board);
+    const wantedPatterns = [...board.terrain.values()].flatMap((terrain) =>
+      terrain.type === "target" ? [terrain.pattern] : [],
+    );
     board.terrain.delete(key);
     board.terrain.set(cellKey(cell), {
       type: "target",
-      pattern: wants[Math.floor(random() * wants.length)] ?? target.pattern,
+      pattern:
+        board.mode === "endless"
+          ? chooseEndlessPattern(random, wantedPatterns)
+          : chooseTargetPattern(board.completedTargets, random, wantedPatterns),
       filled: 0,
     });
     arrived.push(cell);

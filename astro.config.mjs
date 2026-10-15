@@ -6,10 +6,11 @@ import { defineConfig, fontProviders } from "astro/config";
 // https://astro.build/config
 export default defineConfig({
   site: "https://kahnpoint.com",
+  redirects: { "/xor": { destination: "/onehot", status: 301 } },
 
   vite: {
     plugins: [tailwindcss()],
-    // Phaser is bundled at server start, so the first visit to /xor does not wait on it.
+    // Phaser is bundled at server start, so the first visit to /onehot does not wait on it.
     optimizeDeps: { include: ["phaser"] },
   },
 

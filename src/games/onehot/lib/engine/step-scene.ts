@@ -58,6 +58,11 @@ export abstract class StepScene extends Phaser.Scene {
     this.touch?.setEnabled(button, enabled);
   }
 
+  protected resetView(): void {
+    this.camera = null;
+    this.accumulatedSeconds = 0;
+  }
+
   protected press(input: PadOverride, steps: number): void {
     for (let step = 0; step < steps; step++)
       this.runStep(padInputFromOverride(input, step === 0));

@@ -8,16 +8,20 @@ const { title, storageKey } = Astro.props;
 ---
 
 <help-dialog data-storage-key={storageKey}>
-  <button
-    type="button"
-    aria-label="Help"
-    data-help-open
-    class="fixed top-[max(1.5rem,env(safe-area-inset-top))] right-[max(1.5rem,env(safe-area-inset-right))] z-10 flex size-10 cursor-pointer items-center justify-center border-4 border-neutral-900 bg-white text-xl text-neutral-900 hover:bg-neutral-100"
-  >
-    <i class="ph-bold ph-question-mark" aria-hidden="true"></i>
-  </button>
+  <div class="fixed top-[max(1.5rem,env(safe-area-inset-top))] right-[max(1.5rem,env(safe-area-inset-right))] z-10 flex gap-2">
+    <button
+      type="button"
+      aria-label="Help"
+      data-help-open
+      class="flex size-10 cursor-pointer items-center justify-center border-4 border-neutral-900 bg-white text-xl text-neutral-900 hover:bg-neutral-100"
+    >
+      <i class="ph-bold ph-question-mark" aria-hidden="true"></i>
+    </button>
+    <slot name="actions" />
+  </div>
 
   <dialog
+    data-help-dialog
     aria-labelledby="help-dialog-title"
     closedby="any"
     class="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-md touch-pan-y overflow-y-auto border-4 border-neutral-900 bg-white p-6 text-neutral-900 backdrop:bg-white/70"
@@ -42,7 +46,8 @@ const { title, storageKey } = Astro.props;
 <script>
   class HelpDialog extends HTMLElement {
     connectedCallback(): void {
-      const dialog = this.querySelector("dialog");
+      const dialog =
+        this.querySelector<HTMLDialogElement>("[data-help-dialog]");
       const openButton = this.querySelector("[data-help-open]");
       if (!dialog || !openButton) return;
 

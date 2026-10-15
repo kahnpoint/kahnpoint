@@ -1,18 +1,22 @@
 ---
 import HomeButton from "../components/HomeButton.astro";
-import GameStage from "../components/xor/GameStage.astro";
-import XorHelp from "../components/xor/XorHelp.astro";
+import CompletionDialog from "../components/onehot/CompletionDialog.astro";
+import GameHud from "../components/onehot/GameHud.astro";
+import GameStage from "../components/onehot/GameStage.astro";
+import OnehotHelp from "../components/onehot/OnehotHelp.astro";
 import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout
-  title="XOR | Kahnpoint"
+  title="Onehot | Kahnpoint"
   bodyClass="overflow-hidden font-sans"
   viewport="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
 >
   <GameStage />
+  <GameHud />
   <HomeButton />
-  <XorHelp />
+  <OnehotHelp />
+  <CompletionDialog />
 </Layout>
 
 <style is:global>

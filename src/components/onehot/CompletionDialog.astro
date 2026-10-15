@@ -1,0 +1,63 @@
+<onehot-completion>
+  <dialog
+    aria-labelledby="completion-dialog-title"
+    class="m-auto w-[calc(100vw-2rem)] max-w-sm border-4 border-neutral-900 bg-white p-6 text-neutral-900 backdrop:bg-white/70"
+  >
+    <h1 id="completion-dialog-title" class="text-2xl">
+      All levels complete
+    </h1>
+    <p class="mt-3">Keep going with random patterns, or start a new game.</p>
+    <form method="dialog" class="mt-6 flex justify-end gap-3">
+      <button
+        value="restart"
+        class="cursor-pointer px-3 py-2 hover:bg-neutral-100"
+      >
+        Restart
+      </button>
+      <button
+        value="continue"
+        autofocus
+        class="cursor-pointer border-4 border-neutral-900 px-3 py-2 hover:bg-neutral-100"
+      >
+        Keep going
+      </button>
+    </form>
+  </dialog>
+</onehot-completion>
+
+<script>
+  class OnehotCompletion extends HTMLElement {
+    connectedCallback(): void {
+      const dialog = this.querySelector("dialog");
+      if (!dialog) return;
+      const openDialog = (): void => {
+        if (dialog.open || document.querySelector("dialog[open]")) return;
+        dialog.returnValue = "";
+        dialog.showModal();
+        this.dispatchEvent(
+          new CustomEvent("onehot-modal-toggle", { bubbles: true }),
+        );
+      };
+      document.addEventListener("onehot-progress", (event) => {
+        if ((event as CustomEvent).detail.mode === "complete") openDialog();
+      });
+      document.addEventListener("help-toggle", () => {
+        if (window.__board?.board.mode === "complete") openDialog();
+      });
+      dialog.addEventListener("cancel", (event) => event.preventDefault());
+      dialog.addEventListener("close", () => {
+        if (dialog.returnValue === "restart")
+          this.dispatchEvent(
+            new CustomEvent("onehot-restart", { bubbles: true }),
+          );
+        else if (dialog.returnValue === "continue")
+          window.__board?.continueEndless();
+        this.dispatchEvent(
+          new CustomEvent("onehot-modal-toggle", { bubbles: true }),
+        );
+      });
+      if (window.__board?.board.mode === "complete") openDialog();
+    }
+  }
+  customElements.define("onehot-completion", OnehotCompletion);
+</script>
