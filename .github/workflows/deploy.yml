@@ -21,7 +21,6 @@ jobs:
         with:
           path: ./
           node-version: 26
-          package-manager: pnpm@latest
           build-cmd: pnpm run build
 
   deploy:
