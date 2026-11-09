@@ -7,8 +7,7 @@
   "bio": "",
 
   "stats": [
-    { "label": "California", "icon": "map-pin" },
-    { "label": "70 wpm", "icon": "keyboard" }
+    { "label": "California", "icon": "map-pin" }
   ],
 
   "skills": [
